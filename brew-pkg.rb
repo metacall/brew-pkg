@@ -106,7 +106,7 @@ Options:
     end
 
     # Zip it
-    if ARGV.include? '--compress'
+    if ARGV.include? '--compress-dir'
       compress_path = ARGV.next
       tgzfile = File.join(compress_path, "#{name}-#{version}.tgz")
       ohai "Compressing package #{tgzfile}"
