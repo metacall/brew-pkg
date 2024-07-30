@@ -27,9 +27,12 @@ Options:
   --with-deps             include all the package's dependencies in the built package
   --without-kegs          exclude package contents at /usr/local/Cellar/packagename
   --scripts               set the path to custom preinstall and postinstall scripts
+  --output-dir            define the output dir where files will be copied
+  --compress-dir          generate a tgz file with the package files into a folder
     EOS
 
     abort pkg_usage if ARGV.empty?
+
     identifier_prefix = if ARGV.include? '--identifier-prefix'
       ARGV.next.chomp(".")
     else
@@ -51,7 +54,11 @@ Options:
     end
 
     # Setup staging dir
-    pkg_root = Dir.mktmpdir 'brew-pkg'
+    pkg_root = if ARGV.include? '--output-dir'
+      ARGV.next
+    else
+      Dir.mktmpdir 'brew-pkg'
+    end
     staging_root = pkg_root + HOMEBREW_PREFIX
     ohai "Creating package staging root using Homebrew prefix #{HOMEBREW_PREFIX}"
     FileUtils.mkdir_p staging_root
@@ -85,7 +92,6 @@ Options:
           safe_system "mkdir", "-p", "#{staging_root}/Cellar/#{formula.name}/"
           safe_system "rsync", "-a", "#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}", "#{staging_root}/Cellar/#{formula.name}/"
         end
-
       end
 
       # Write out a LaunchDaemon plist if we have one
@@ -97,6 +103,15 @@ Options:
         fd.write formula.service.to_plist
         fd.close
       end
+    end
+
+    # Zip it
+    if ARGV.include? '--compress'
+      compress_path = ARGV.next
+      tgzfile = File.join(compress_path, "#{name}-#{version}.tgz")
+      ohai "Compressing package #{tgzfile}"
+      args = [ "-czf", tgzfile, pkg_root ]
+      safe_system "tar", *args
     end
 
     # Add scripts if we specified --scripts
