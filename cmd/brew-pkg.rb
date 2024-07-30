@@ -12,7 +12,7 @@ end
 # cribbed Homebrew module code from brew-unpack.rb
 module Homebrew extend self
   def pkg
-    unpack_usage = <<-EOS
+    pkg_usage = <<-EOS
 Usage: brew pkg [--identifier-prefix] [--with-deps] [--without-kegs] formula
 
 Build an OS X installer package from a formula. It must be already
@@ -29,7 +29,7 @@ Options:
   --scripts               set the path to custom preinstall and postinstall scripts
     EOS
 
-    abort unpack_usage if ARGV.empty?
+    abort pkg_usage if ARGV.empty?
     identifier_prefix = if ARGV.include? '--identifier-prefix'
       ARGV.next.chomp(".")
     else
@@ -55,7 +55,6 @@ Options:
     staging_root = pkg_root + HOMEBREW_PREFIX
     ohai "Creating package staging root using Homebrew prefix #{HOMEBREW_PREFIX}"
     FileUtils.mkdir_p staging_root
-
 
     pkgs = [f]
 
