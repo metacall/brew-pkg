@@ -28,7 +28,7 @@ Options:
   --without-kegs          exclude package contents at /usr/local/Cellar/packagename
   --scripts               set the path to custom preinstall and postinstall scripts
   --output-dir            define the output dir where files will be copied
-  --compress-dir          generate a tgz file with the package files into a folder
+  --compress              generate a tgz file with the package files into the current folder
     EOS
 
     abort pkg_usage if ARGV.empty?
@@ -106,9 +106,8 @@ Options:
     end
 
     # Zip it
-    if ARGV.include? '--compress-dir'
-      compress_path = ARGV.next
-      tgzfile = File.join(compress_path, "#{name}-#{version}.tgz")
+    if ARGV.include? '--compress'
+      tgzfile = "#{name}-#{version}.tgz"
       ohai "Compressing package #{tgzfile}"
       args = [ "-czf", tgzfile, pkg_root ]
       safe_system "tar", *args
