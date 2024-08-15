@@ -70,6 +70,8 @@ Options:
 
     pkgs.each do |pkg|
       formula = Formulary.factory(pkg.to_s)
+      next if formula.build? || formula.test?
+
       dep_version = formula.version.to_s
       dep_version += "_#{formula.revision}" if formula.revision.to_s != '0'
 
