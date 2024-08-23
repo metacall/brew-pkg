@@ -66,13 +66,13 @@ Options:
     pkgs = [f]
 
     # Add deps if we specified --with-deps
-    if ARGV.include? '--with-deps'
-      pkgs += f.recursive_dependencies.reject do |dep|
-        dep.build? || dep.test?
-      end
-    end
+    pkgs += f.recursive_dependencies if ARGV.include? '--with-deps'
 
-    # pkgs += f.recursive_dependencies if ARGV.include? '--with-deps'
+    # if ARGV.include? '--with-deps'
+    #   pkgs += f.recursive_dependencies.reject do |dep|
+    #     dep.build? || dep.test?
+    #   end
+    # end
 
     pkgs.each do |pkg|
       formula = Formulary.factory(pkg.to_s)
