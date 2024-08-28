@@ -12,7 +12,7 @@ brew tap --verbose metacall/brew-pkg
 brew install --verbose --HEAD metacall/brew-pkg/brew-pkg
 
 # Test
-brew install python@12
-brew pkg --with-deps --compress python@12
+brew install python@3.12
+brew pkg --with-deps --compress python@3.12
 
 ls -la
