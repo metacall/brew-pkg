@@ -34,7 +34,7 @@ Options:
     abort pkg_usage if ARGV.empty?
 
     identifier_prefix = if ARGV.include? '--identifier-prefix'
-      ARGV.next.chomp(".")
+      ARGV[ARGV.index('--identifier-prefix') + 1].chomp(".")
     else
       'org.homebrew'
     end
@@ -55,7 +55,7 @@ Options:
 
     # Setup staging dir
     pkg_root = if ARGV.include? '--output-dir'
-      ARGV.next
+      ARGV[ARGV.index('--output-dir') + 1]
     else
       Dir.mktmpdir 'brew-pkg'
     end
@@ -124,7 +124,7 @@ Options:
     # Add scripts if we specified --scripts
     found_scripts = false
     if ARGV.include? '--scripts'
-      scripts_path = ARGV.next
+      scripts_path = ARGV[ARGV.index('--scripts') + 1]
       if File.directory?(scripts_path)
         pre = File.join(scripts_path,"preinstall")
         post = File.join(scripts_path,"postinstall")
@@ -147,7 +147,7 @@ Options:
     # Custom ownership
     found_ownership = false
     if ARGV.include? '--ownership'
-      custom_ownership = ARGV.next
+      custom_ownership = ARGV[ARGV.index('--ownership') + 1]
        if ['recommended', 'preserve', 'preserve-other'].include? custom_ownership
         found_ownership = true
         ohai "Setting pkgbuild option --ownership with value #{custom_ownership}"
