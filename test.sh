@@ -16,3 +16,4 @@ brew install python@3.12
 brew pkg --output python --with-deps --compress python@3.12
 test -f python.tgz
 test -f python.pkg
+tar -ztvf python.tgz
