@@ -11,8 +11,8 @@ fi
 brew tap --verbose metacall/brew-pkg
 brew install --verbose --HEAD metacall/brew-pkg/brew-pkg
 
-# Test
+# Test Python with dependencies, compress and custom output tarball name
 brew install python@3.12
-brew pkg --with-deps --compress python@3.12
-
-ls -la
+brew pkg --output python --with-deps --compress python@3.12
+test -f python.tgz
+test -f python.pkg

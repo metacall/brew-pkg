@@ -13,7 +13,7 @@ end
 module Homebrew extend self
   def pkg
     pkg_usage = <<-EOS
-Usage: brew pkg [--identifier-prefix] [--with-deps] [--without-kegs] [--output-dir] [--compress] formula
+Usage: brew pkg [--identifier-prefix] [--with-deps] [--without-kegs] [--output] [--output-dir] [--compress] formula
 
 Build an OS X installer package from a formula. It must be already
 installed; 'brew pkg' doesn't handle this for you automatically. The
@@ -29,6 +29,7 @@ Options:
   --scripts               set the path to custom preinstall and postinstall scripts
   --output-dir            define the output dir where files will be copied
   --compress              generate a tgz file with the package files into the current folder
+  --output                define a custom output name
     EOS
 
     abort pkg_usage if ARGV.empty?
@@ -37,6 +38,12 @@ Options:
       ARGV[ARGV.index('--identifier-prefix') + 1].chomp(".")
     else
       'org.homebrew'
+    end
+
+    output_name = if ARGV.include? '--output'
+      ARGV[ARGV.index('--output') + 1]
+    else
+      "#{name}-#{version}"
     end
 
     f = Formulary.factory ARGV.last
@@ -115,7 +122,7 @@ Options:
 
     # Zip it
     if ARGV.include? '--compress'
-      tgzfile = "#{name}-#{version}.tgz"
+      tgzfile = "#{output_name}.tgz"
       ohai "Compressing package #{tgzfile}"
       args = [ "-czf", tgzfile, "-C", staging_root, "." ]
       safe_system "tar", *args
@@ -157,7 +164,7 @@ Options:
     end
 
     # Build it
-    pkgfile = "#{name}-#{version}.pkg"
+    pkgfile = "#{output_name}.pkg"
     ohai "Building package #{pkgfile}"
     args = [
       "--quiet",
