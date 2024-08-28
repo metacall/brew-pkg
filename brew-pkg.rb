@@ -68,6 +68,7 @@ Options:
     # Add deps if we specified --with-deps
     pkgs += f.recursive_dependencies if ARGV.include? '--with-deps'
 
+    # TODO: Implement proper filtering
     # if ARGV.include? '--with-deps'
     #   pkgs += f.recursive_dependencies.reject do |dep|
     #     dep.build? || dep.test?
