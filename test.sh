@@ -12,10 +12,7 @@ brew tap --verbose metacall/brew-pkg
 brew install --verbose --HEAD metacall/brew-pkg/brew-pkg
 
 # Test
-brew pkg --with-deps --compress python
+brew install python@12
+brew pkg --with-deps --compress python@12
 
 ls -la
-
-
-# mv metacall-${METACALL_VERSION}.pkg release/metacall-tarball-macos-${METACALL_ARCH}.pkg
-# mv metacall-${METACALL_VERSION}.tgz release/metacall-tarball-macos-${METACALL_ARCH}.tgz
