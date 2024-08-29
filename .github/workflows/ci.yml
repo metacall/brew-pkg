@@ -132,6 +132,5 @@ jobs:
       - name: Test
         run: |
           mkdir distributable
-          sudo installer -pkg "ruby-with-python.pkg" -target `pwd`/distributable
-          export PATH="`pwd`/distributable/bin:$PATH"
-          ./distributable/bin/python3 -c 'import sys; print(sys.argv)'
+          sudo installer -pkg "ruby-with-python.pkg" -target /
+          /bin/python3 -c 'import sys; print(sys.argv)'
