@@ -132,9 +132,6 @@ jobs:
       - name: Test
         run: |
           mkdir distributable
-          echo "---------------------------------------------------------"
           lsbom $(pkgutil --bom ruby-with-python.pkg)
-          echo "---------------------------------------------------------"
           sudo installer -pkg "ruby-with-python.pkg" -target /
-          echo "---------------------------------------------------------"
-          /bin/python3 -c 'import sys; print(sys.argv)'
+          /opt/homebrew/python3 -c 'import sys; print(sys.argv)'
