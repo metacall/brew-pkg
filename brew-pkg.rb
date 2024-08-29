@@ -98,7 +98,7 @@ the conventions of OS X installer packages.
 
       # TODO: Implement proper filtering
       # if options[:with_deps]
-      #   pkgs += f.recursive_dependencies.reject do |dep|
+      #   dependencies += f.recursive_dependencies.reject do |dep|
       #     dep.build? || dep.test?
       #   end
       # end
@@ -130,12 +130,9 @@ the conventions of OS X installer packages.
     ohai "Creating package staging root using Homebrew prefix #{HOMEBREW_PREFIX}"
     FileUtils.mkdir_p staging_root
 
-    pkgs.each do |pkg|
-      formula = Formulary.factory(pkg.to_s)
-
+    formulas.each do |formula|
       dep_version = formula.version.to_s
       dep_version += "_#{formula.revision}" if formula.revision.to_s != '0'
-
 
       ohai "Staging formula #{formula.name}"
       # Get all directories for this keg, rsync to the staging root
