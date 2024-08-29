@@ -134,4 +134,5 @@ jobs:
           mkdir distributable
           sudo installer -pkg "ruby-with-python.pkg" -target /
           ls -la /bin
+          find / -name python3
           /bin/python3 -c 'import sys; print(sys.argv)'
