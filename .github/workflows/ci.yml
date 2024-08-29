@@ -135,3 +135,4 @@ jobs:
           lsbom $(pkgutil --bom ruby-with-python.pkg)
           sudo installer -pkg "ruby-with-python.pkg" -target /
           /opt/homebrew/python3 -c 'import sys; print(sys.argv)'
+          /opt/homebrew/ruby -e "require 'date'; puts Date.today"
