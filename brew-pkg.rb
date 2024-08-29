@@ -3,84 +3,126 @@ require 'formula'
 require 'optparse'
 require 'tmpdir'
 
-module HomebrewArgvExtension extend self
-  def with_deps?
-    flag? '--with-deps'
-  end
-end
-
 # cribbed Homebrew module code from brew-unpack.rb
 module Homebrew extend self
   def pkg
-    pkg_usage = <<-EOS
-Usage: brew pkg [--identifier-prefix] [--with-deps] [--without-kegs] [--output] [--output-dir] [--compress] formula
+    options = {
+      identifier_prefix: 'org.homebrew',
+      with_deps: false,
+      without_kegs: false,
+      scripts: '',
+      output_dir: '',
+      compress: false,
+      package_name: '',
+      ownership: ''
+    }
+    packages = []
+
+    option_parser = OptionParser.new do |opts|
+      opts.banner = <<-EOS
+Usage: brew pkg [--identifier-prefix] [--with-deps] [--without-kegs] [--package-name] [--output-dir] [--compress] formula [...additional formulas]
 
 Build an OS X installer package from a formula. It must be already
 installed; 'brew pkg' doesn't handle this for you automatically. The
 '--identifier-prefix' option is strongly recommended in order to follow
 the conventions of OS X installer packages.
+      EOS
 
-Options:
-  --identifier-prefix     set a custom identifier prefix to be prepended
-                          to the built package's identifier, ie. 'org.nagios'
-                          makes a package identifier called 'org.nagios.nrpe'
-  --with-deps             include all the package's dependencies in the built package
-  --without-kegs          exclude package contents at /usr/local/Cellar/packagename
-  --scripts               set the path to custom preinstall and postinstall scripts
-  --output-dir            define the output dir where files will be copied
-  --compress              generate a tgz file with the package files into the current folder
-  --output                define a custom output name
-    EOS
+      opts.on('-i', '--identifier-prefix identifier_prefix', 'Set a custom identifier prefix to be prepended') do |o|
+        options[:identifier_prefix] = o.chomp('.')
+      end
 
-    abort pkg_usage if ARGV.empty?
+      opts.on('-d', '--with-deps', 'Include all the package\'s dependencies in the built package') do
+        options[:with_deps] = true
+      end
 
-    identifier_prefix = if ARGV.include? '--identifier-prefix'
-      ARGV[ARGV.index('--identifier-prefix') + 1].chomp(".")
-    else
-      'org.homebrew'
+      opts.on('-k', '--without-kegs', 'Exclude package contents at /usr/local/Cellar/packagename') do
+        options[:without_kegs] = true
+      end
+
+      opts.on('-s', '--scripts scripts_path', 'Set the path to custom preinstall and postinstall scripts') do |o|
+        options[:scripts_path] = o
+      end
+
+      opt.on('-o', '--output-dir output_dir', 'Define the output dir where files will be copied') do |o|
+        options[:output_dir] = o
+      end
+
+      opts.on('-c', '--compress', 'Generate a tgz file with the package files into the current folder') do
+        options[:compress] = true
+      end
+
+      opts.on('-n', '--package-name package_name', 'Define a custom output package name') do |o|
+        options[:package_name] = o
+      end
+
+      ownership_options = ['recommended', 'preserve', 'preserve-other']
+      opts.on('-w', '--ownership ownership_mode', 'Define the ownership as: recommended, preserve or preserve-other') do |o|
+        if ownership_options.include?(o)
+          options[:ownership] = value
+          ohai "Setting pkgbuild option --ownership with value #{value}"
+        else
+          opoo "#{value} is not a valid value for pkgbuild --ownership option, ignoring"
+        end
+      end
     end
 
-    output_name = if ARGV.include? '--output'
-      ARGV[ARGV.index('--output') + 1]
-    else
-      "#{name}-#{version}"
+    # Parse the command line arguments
+    option_parser.parse!(ARGV)
+
+    # Exit if there's no formula or there's more than one
+    abort option_parser.banner if ARGV.lenght != 1
+
+    # ARGV now contains the free arguments after parsing the options
+    packages = ARGV
+
+    # Define the formula
+    dependencies = []
+    formulas = packages.map do |formula|
+      f = Formulary.factory(formula)
+
+      # Make sure it's installed first
+      if !f.any_version_installed?
+        onoe "#{f.name} is not installed. First install it with 'brew install #{f.name}'."
+        abort
+      end
+
+      # Add deps if we specified --with-deps
+      dependencies += f.recursive_dependencies if options[:with_deps]
+
+      # TODO: Implement proper filtering
+      # if options[:with_deps]
+      #   pkgs += f.recursive_dependencies.reject do |dep|
+      #     dep.build? || dep.test?
+      #   end
+      # end
+
+      f
     end
 
-    f = Formulary.factory ARGV.last
-    # raise FormulaUnspecifiedError if formulae.empty?
-    # formulae.each do |f|
+    # Add the dependencies to the rest of formulas if any
+    formulas += dependencies
+
+    # Define the first package which is the main one
+    f = formulas.first
     name = f.name
-    identifier = identifier_prefix + ".#{name}"
+    identifier = options[:identifier_prefix] + ".#{name}"
     version = f.version.to_s
     version += "_#{f.revision}" if f.revision.to_s != '0'
 
-    # Make sure it's installed first
-    if not f.any_version_installed?
-      onoe "#{f.name} is not installed. First install it with 'brew install #{f.name}'."
-      abort
+    # If the package name is not defined, define the default one
+    if options[:package_name] == ''
+      options[:package_name] = "#{name}-#{version}"
     end
 
     # Setup staging dir
-    pkg_root = if ARGV.include? '--output-dir'
-      ARGV[ARGV.index('--output-dir') + 1]
-    else
-      Dir.mktmpdir 'brew-pkg'
+    if options[:output_dir] == ''
+      options[:output_dir] = Dir.mktmpdir('brew-pkg')
     end
-    staging_root = pkg_root + HOMEBREW_PREFIX
+
+    staging_root = options[:output_dir] + HOMEBREW_PREFIX
     ohai "Creating package staging root using Homebrew prefix #{HOMEBREW_PREFIX}"
     FileUtils.mkdir_p staging_root
-
-    pkgs = [f]
-
-    # Add deps if we specified --with-deps
-    pkgs += f.recursive_dependencies if ARGV.include? '--with-deps'
-
-    # TODO: Implement proper filtering
-    # if ARGV.include? '--with-deps'
-    #   pkgs += f.recursive_dependencies.reject do |dep|
-    #     dep.build? || dep.test?
-    #   end
-    # end
 
     pkgs.each do |pkg|
       formula = Formulary.factory(pkg.to_s)
@@ -100,7 +142,7 @@ Options:
         dirs.each {|d| safe_system "rsync", "-a", "#{d}", "#{staging_root}/" }
 
 
-        if File.exist?("#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}") and not ARGV.include? '--without-kegs'
+        if File.exist?("#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}") && !options[:without_deps]
 
           ohai "Staging directory #{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}"
 
@@ -121,8 +163,8 @@ Options:
     end
 
     # Zip it
-    if ARGV.include? '--compress'
-      tgzfile = "#{output_name}.tgz"
+    if options[:compress]
+      tgzfile = "#{options[:package_name]}.tgz"
       ohai "Compressing package #{tgzfile}"
       args = [ "-czf", tgzfile, "-C", staging_root, "." ]
       safe_system "tar", *args
@@ -130,11 +172,10 @@ Options:
 
     # Add scripts if we specified --scripts
     found_scripts = false
-    if ARGV.include? '--scripts'
-      scripts_path = ARGV[ARGV.index('--scripts') + 1]
-      if File.directory?(scripts_path)
-        pre = File.join(scripts_path,"preinstall")
-        post = File.join(scripts_path,"postinstall")
+    if options[:scripts_path] != ''
+      if File.directory?(options[:scripts_path])
+        pre = File.join(options[:scripts_path],"preinstall")
+        post = File.join(options[:scripts_path],"postinstall")
         if File.exist?(pre)
           File.chmod(0755, pre)
           found_scripts = true
@@ -147,43 +188,31 @@ Options:
         end
       end
       if not found_scripts
-        opoo "No scripts found in #{scripts_path}"
+        opoo "No scripts found in #{options[:scripts_path]}"
       end
     end
 
-    # Custom ownership
-    found_ownership = false
-    if ARGV.include? '--ownership'
-      custom_ownership = ARGV[ARGV.index('--ownership') + 1]
-       if ['recommended', 'preserve', 'preserve-other'].include? custom_ownership
-        found_ownership = true
-        ohai "Setting pkgbuild option --ownership with value #{custom_ownership}"
-       else
-        opoo "#{custom_ownership} is not a valid value for pkgbuild --ownership option, ignoring"
-       end
-    end
-
     # Build it
-    pkgfile = "#{output_name}.pkg"
+    pkgfile = "#{options[:package_name]}.pkg"
     ohai "Building package #{pkgfile}"
     args = [
       "--quiet",
-      "--root", "#{pkg_root}",
+      "--root", "#{options[:output_dir]}",
       "--identifier", identifier,
       "--version", version
     ]
     if found_scripts
       args << "--scripts"
-      args << scripts_path
+      args << options[:scripts_path]
     end
-    if found_ownership
+    if options[:ownership] != ''
       args << "--ownership"
-      args << custom_ownership
+      args << options[:ownership]
     end
     args << "#{pkgfile}"
     safe_system "pkgbuild", *args
 
-    FileUtils.rm_rf pkg_root
+    FileUtils.rm_rf options[:output_dir]
   end
 end
 
