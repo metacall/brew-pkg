@@ -133,12 +133,12 @@ jobs:
         run: |
           mkdir distributable
           echo "---------------------------------------------------------"
-          find / -name python3
+          find / -name python3 || true
           echo "---------------------------------------------------------"
           sudo installer -pkg "ruby-with-python.pkg" -target /
           echo "---------------------------------------------------------"
-          ls -la /bin
+          ls -la /bin || true
           echo "---------------------------------------------------------"
-          find / -name python3
+          find / -name python3 || true
           echo "---------------------------------------------------------"
           /bin/python3 -c 'import sys; print(sys.argv)'
