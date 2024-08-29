@@ -80,6 +80,7 @@ the conventions of OS X installer packages.
 
     # ARGV now contains the free arguments after parsing the options
     packages = [ARGV.first] + options[:additional_deps]
+    ohai "Building packages: #{packages.join(', ')}"
 
     # Define the formula
     dependencies = []
