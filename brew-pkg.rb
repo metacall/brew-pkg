@@ -76,7 +76,7 @@ the conventions of OS X installer packages.
     option_parser.parse!(ARGV)
 
     # Exit if there's no formula or there's more than one
-    abort option_parser.banner if ARGV.lenght != 1
+    abort option_parser.banner if ARGV.length != 1
 
     # ARGV now contains the free arguments after parsing the options
     packages = [ARGV.first] + options[:additional_deps]
