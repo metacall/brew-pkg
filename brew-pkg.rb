@@ -130,7 +130,9 @@ the conventions of OS X installer packages.
     ohai "Creating package staging root using Homebrew prefix #{HOMEBREW_PREFIX}"
     FileUtils.mkdir_p staging_root
 
-    formulas.each do |formula|
+    formulas.each do |pkg|
+      formula = Formulary.factory(pkg.to_s)
+
       dep_version = formula.version.to_s
       dep_version += "_#{formula.revision}" if formula.revision.to_s != '0'
 
