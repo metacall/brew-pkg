@@ -108,6 +108,7 @@ jobs:
           tar -xvzf ruby-with-python.tgz -C `pwd`/distributable
           export PATH="`pwd`/distributable/bin:$PATH"
           ./distributable/bin/python3 -c 'import sys; print(sys.argv)'
+          ./distributable/bin/ruby -e "require 'date'; puts Date.today"
 
   test-pkg:
     name: Run Test Distributable PKG

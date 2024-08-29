@@ -2,8 +2,67 @@
 require 'formula'
 require 'optparse'
 require 'tmpdir'
+require 'open3'
 
-# cribbed Homebrew module code from brew-unpack.rb
+# # change the hardcoded ../Frameworks relative path that Xcode does by rewriting the binaries after the build
+# # check with:
+# #   otool -L <binary>
+
+# # this is the new location
+# # make sure this is the same Destination the Frameworks are copied to in the "Copy Files" step
+# # the default "@executable_path/" would be Destination = Products Directory
+# NEW_FRAMEWORKS_PATH="@executable_path/"
+
+# # the one we want to replace
+# DEFAULT_FRAMEWORKS_PATH="@executable_path/../Frameworks/"
+
+# function change_binary {
+#     local libpaths=`otool -L "$1" | grep "$DEFAULT_FRAMEWORKS_PATH" | tr '\t' ' ' | cut -d " " -f2`
+#     local lib
+#     for lib in $libpaths; do
+#         if [ "$2" == "recursive" ]; then
+#             local libbinary=`echo $lib | sed "s,$DEFAULT_FRAMEWORKS_PATH,,"`
+#             change_binary "$libbinary"
+#         fi
+#         local newlib=`echo $lib | sed "s,$DEFAULT_FRAMEWORKS_PATH,$NEW_FRAMEWORKS_PATH,"`;
+#         echo "changing library path in '$1': '$lib' => '$newlib'"
+#         install_name_tool -change "$lib" "$newlib" "$1"
+#     done
+# }
+
+# cd $BUILT_PRODUCTS_DIR
+# change_binary "$EXECUTABLE_NAME" recursive
+
+# INSTALL_DIR = if ENV['METACALL_ARCH'] == 'arm64'
+#                 'opt/homebrew'
+#               else
+#                 'usr/local'
+#               end
+
+# def change_library_path(loader)
+#   lib_regex = INSTALL_DIR
+#   metacall_lib = "distributable/metacall-core/lib/lib#{loader}_loader.so"
+
+#   stdout, status = Open3.capture2("otool -L #{metacall_lib}")
+#   old_lib = stdout.lines.grep(/#{lib_regex}/).first&.split&.first
+
+#   if old_lib
+#     old_lib_regex = old_lib.split('/').last(3).join('/')
+#     new_lib = Dir.chdir('distributable') do
+#       Dir.glob("**/*").find { |f| File.file?(f) && f.end_with?(old_lib_regex) }
+#     end
+
+#     if new_lib
+#       system("install_name_tool -change #{old_lib} @loader_path/../.#{new_lib} #{metacall_lib}")
+#       puts "Updated #{loader} loader: #{old_lib} -> #{new_lib}"
+#     else
+#       puts "Failed to update #{loader} loader: Could not find the new library path."
+#     end
+#   else
+#     puts "Failed to update #{loader} loader: Could not find the old library path."
+#   end
+# end
+
 module Homebrew extend self
   def pkg
     options = {
@@ -137,15 +196,13 @@ the conventions of OS X installer packages.
       dep_version += "_#{formula.revision}" if formula.revision.to_s != '0'
 
       ohai "Staging formula #{formula.name}"
-      # Get all directories for this keg, rsync to the staging root
 
+      # Get all directories for this keg, rsync to the staging root
       if File.exist?(File.join(HOMEBREW_CELLAR, formula.name, dep_version))
 
         dirs = Pathname.new(File.join(HOMEBREW_CELLAR, formula.name, dep_version)).children.select { |c| c.directory? }.collect { |p| p.to_s }
 
-
-        dirs.each {|d| safe_system "rsync", "-a", "#{d}", "#{staging_root}/" }
-
+        dirs.each { |d| safe_system "rsync", "-a", "#{d}", "#{staging_root}/" }
 
         if File.exist?("#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}") && !options[:without_deps]
 
