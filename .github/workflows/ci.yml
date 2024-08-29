@@ -134,5 +134,10 @@ jobs:
           mkdir distributable
           lsbom $(pkgutil --bom ruby-with-python.pkg)
           sudo installer -pkg "ruby-with-python.pkg" -target /
-          /opt/homebrew/bin/python3 -c 'import sys; print(sys.argv)'
-          /opt/homebrew/bin/ruby -e "require 'date'; puts Date.today"
+          if [ "$(uname -m)" = "arm64" ]; then
+              INSTALL_DIR="/opt/homebrew"
+          else
+              INSTALL_DIR="/usr/local"
+          fi
+          ${INSTALL_DIR}/bin/python3 -c 'import sys; print(sys.argv)'
+          ${INSTALL_DIR}/bin/ruby -e "require 'date'; puts Date.today"
