@@ -10,7 +10,7 @@ module Homebrew extend self
       identifier_prefix: 'org.homebrew',
       with_deps: false,
       without_kegs: false,
-      scripts: '',
+      scripts_path: '',
       output_dir: '',
       compress: false,
       package_name: '',
