@@ -45,7 +45,7 @@ the conventions of OS X installer packages.
         options[:scripts_path] = o
       end
 
-      opt.on('-o', '--output-dir output_dir', 'Define the output dir where files will be copied') do |o|
+      opts.on('-o', '--output-dir output_dir', 'Define the output dir where files will be copied') do |o|
         options[:output_dir] = o
       end
 
