@@ -14,7 +14,8 @@ module Homebrew extend self
       output_dir: '',
       compress: false,
       package_name: '',
-      ownership: ''
+      ownership: '',
+      additional_deps: []
     }
     packages = []
 
@@ -65,6 +66,10 @@ the conventions of OS X installer packages.
           opoo "#{value} is not a valid value for pkgbuild --ownership option, ignoring"
         end
       end
+
+      opts.on('-a', '--additional-deps deps_separated_by_coma', 'Provide additional dependencies in order to package all them together') do |o|
+        options[:additional_deps] = o.split(',')
+      end
     end
 
     # Parse the command line arguments
@@ -74,7 +79,7 @@ the conventions of OS X installer packages.
     abort option_parser.banner if ARGV.lenght != 1
 
     # ARGV now contains the free arguments after parsing the options
-    packages = ARGV
+    packages = [ARGV.first] + options[:additional_deps]
 
     # Define the formula
     dependencies = []
