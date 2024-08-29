@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test
+  build:
+    name: Build Test Distributable
     strategy:
       fail-fast: false
       matrix:
@@ -68,3 +68,70 @@ jobs:
 
       - name: Test
         run: ./test.sh
+
+      - name: Create the distributable folder
+        run: |
+          mkdir -p distributable
+          mv ruby-with-python.pkg distributable/
+          mv ruby-with-python.tgz distributable/
+
+      # Upload build artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: metacall-tarball-${{ matrix.os }}
+          path: distributable/*
+
+  test-tgz:
+    name: Run Test Distributable TGZ
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-12, macos-13, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+
+      # Clean up previous dependencies in order to avoid conflicts with brew
+      - name: Uninstall brew completely
+        run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+
+      - name: Download the artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: metacall-tarball-${{ matrix.os }}
+
+      # Test the package in a clean environment
+      - name: Test
+        run: |
+          mkdir distributable
+          tar -xvzf ruby-with-python.tgz -C `pwd`/distributable
+          export PATH="`pwd`/distributable/bin:$PATH"
+          ./distributable/bin/python3 -c 'import sys; print(sys.argv)'
+
+  test-pkg:
+    name: Run Test Distributable PKG
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-12, macos-13, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+
+      # Clean up previous dependencies in order to avoid conflicts with brew
+      - name: Uninstall brew completely
+        run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+
+      - name: Download the artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: metacall-tarball-${{ matrix.os }}
+
+      # Test the package in a clean environment
+      - name: Test
+        run: |
+          mkdir distributable
+          sudo installer -pkg "ruby-with-python.pkg" -target `pwd`/distributable
+          export PATH="`pwd`/distributable/bin:$PATH"
+          ./distributable/bin/python3 -c 'import sys; print(sys.argv)'
