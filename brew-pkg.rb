@@ -21,7 +21,7 @@ module Homebrew extend self
 
     option_parser = OptionParser.new do |opts|
       opts.banner = <<-EOS
-Usage: brew pkg [--identifier-prefix] [--with-deps] [--without-kegs] [--package-name] [--output-dir] [--compress] formula [...additional formulas]
+Usage: brew pkg [--identifier-prefix] [--with-deps] [--without-kegs] [--name] [--output-dir] [--compress] formula [...additional formulas]
 
 Build an OS X installer package from a formula. It must be already
 installed; 'brew pkg' doesn't handle this for you automatically. The
@@ -53,7 +53,7 @@ the conventions of OS X installer packages.
         options[:compress] = true
       end
 
-      opts.on('-n', '--package-name package_name', 'Define a custom output package name') do |o|
+      opts.on('-n', '--name package_name', 'Define a custom output package name') do |o|
         options[:package_name] = o
       end
 
