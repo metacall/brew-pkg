@@ -23,7 +23,7 @@ test -f python-without-deps.pkg
 # tar -ztvf python-without-deps.tgz
 
 brew install ruby@3.3
-brew pkg --name ruby-with-python --compress --additional-deps python3.12 ruby@3.3
+brew pkg --name ruby-with-python --compress --additional-deps python@3.12 ruby@3.3
 test -f ruby-with-python.tgz
 test -f ruby-with-python.pkg
 tar -ztvf ruby-with-python.tgz
