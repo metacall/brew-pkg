@@ -7,12 +7,18 @@ require 'pathname'
 
 module Homebrew extend self
   def elf_file?(file_path)
+    ohai "1 ELF? " + file_path
+
     # Check if the file exists
     return false unless File.exist?(file_path)
+
+    ohai "2 ELF? " + file_path
 
     File.open(file_path, "rb") do |file|
       # Read the first 4 bytes
       header = file.read(4)
+
+      ohai "3 ELF? #{header == "\x7FELF"}"
 
       # Check for ELF format
       return header == "\x7FELF"
