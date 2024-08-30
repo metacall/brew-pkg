@@ -20,20 +20,32 @@ module Homebrew extend self
   end
 
   def patchelf(root_dir, prefix_path, binary)
+    ohai "1) AAAAAAAAAAAAAAAAAAAAAA"
+
     # Get the full binary path and check if it's a valid ELF
     binary_path = File.join(root_dir, prefix_path, binary)
     return unless elf_file?(binary_path)
+
+    ohai "2) AAAAAAAAAAAAAAAAAAAAAA #{binary_path}"
 
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
     lib_paths = stdout.lines.grep(/#{prefix_path}/).map(&:lstrip)
 
+    ohai "3) AAAAAAAAAAAAAAAAAAAAAA #{stdout}"
+
     # Iterate through all libraries that the binary is linked to
     lib_paths.each do |lib|
+      ohai "4) AAAAAAAAAAAAAAAAAAAAAA #{lib}"
+
       if File.exist?(lib)
+        ohai "5) AAAAAAAAAAAAAAAAAAAAAA #{lib}"
+
         # Obtain the relative path from the executable
         relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, File.dirname(binary))))
         new_lib = File.join('@executable_path', relative_path)
+
+        ohai "6) AAAAAAAAAAAAAAAAAAAAAA #{new_lib}"
 
         # Patch the library path relative to the binary path
         system("install_name_tool", "-change", lib, new_lib, binary_path)
