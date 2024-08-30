@@ -6,25 +6,42 @@ require 'open3'
 require 'pathname'
 
 module Homebrew extend self
+  def elf_file?(file_path)
+    # Check if the file exists
+    return false unless File.exist?(file_path)
+
+    File.open(file_path, "rb") do |file|
+      # Read the first 4 bytes
+      header = file.read(4)
+
+      # Check for ELF format
+      return header == "\x7FELF"
+    end
+  end
+
   def patchelf(root_dir, prefix_path, binary)
-    ohai('DEBUG PATCHELF:')
-    ohai(root_dir)
-    ohai(prefix_path)
-    ohai(binary)
+    # Get the full binary path and check if it's a valid ELF
     binary_path = File.join(root_dir, prefix_path, binary)
-    ohai(binary_path)
-    return unless File.exist?(binary_path)
-    ohai("otool -L #{binary_path}")
+    return unless elf_file?(binary_path)
+
+    # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
-    ohai(stdout)
     lib_paths = stdout.lines.grep(/#{prefix_path}/).map(&:lstrip)
-    ohai(lib_paths)
+
+    # Iterate through all libraries that the binary is linked to
     lib_paths.each do |lib|
       if File.exist?(lib)
+        # Obtain the relative path from the executable
         relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, File.dirname(binary))))
         new_lib = File.join('@executable_path', relative_path)
-        ohai("install_name_tool", "-change", lib, new_lib, binary_path)
+
+        # Patch the library path relative to the binary path
         system("install_name_tool", "-change", lib, new_lib, binary_path)
+
+        # Debug
+        stdout, status = Open3.capture2("otool -L #{binary_path}")
+        ohai "#{binary_path}:"
+        ohai "#{stdout}"
 
         # Recursively iterate through libraries
         patchelf(root_path, prefix_path, lib.delete_prefix(prefix_path))
