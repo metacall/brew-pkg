@@ -6,28 +6,28 @@ require 'open3'
 require 'pathname'
 
 module Homebrew extend self
-  def patchelf(root_dir, prefix, binary)
+  def patchelf(root_dir, prefix_path, binary)
     ohai('DEBUG PATCHELF:')
     ohai(root_dir)
-    ohai(prefix)
+    ohai(prefix_path)
     ohai(binary)
-    binary_path = File.join(root_dir, prefix, binary)
+    binary_path = File.join(root_dir, prefix_path, binary)
     ohai(binary_path)
     return unless File.exist?(binary_path)
     ohai("otool -L #{binary_path}")
     stdout, status = Open3.capture2("otool -L #{binary_path}")
     ohai(stdout)
-    lib_paths = stdout.lines.grep(/#{prefix}/).map(&:lstrip)
+    lib_paths = stdout.lines.grep(/#{prefix_path}/).map(&:lstrip)
     ohai(lib_paths)
     lib_paths.each do |lib|
       if File.exist?(lib)
-        relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix, File.dirname(binary))))
+        relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, File.dirname(binary))))
         new_lib = File.join('@executable_path', relative_path)
         ohai("install_name_tool", "-change", lib, new_lib, binary_path)
         system("install_name_tool", "-change", lib, new_lib, binary_path)
 
         # Recursively iterate through libraries
-        patchelf(root_path, prefix, lib.delete_prefix(prefix))
+        patchelf(root_path, prefix_path, lib.delete_prefix(prefix_path))
       end
     end
   end
@@ -154,7 +154,7 @@ the conventions of OS X installer packages.
     end
 
     staging_root = options[:output_dir] + HOMEBREW_PREFIX
-    ohai "Creating package staging root using Homebrew prefix #{HOMEBREW_PREFIX}"
+    ohai "Creating package staging root using Homebrew prefix #{HOMEBREW_PREFIX} inside #{staging_root}"
     FileUtils.mkdir_p staging_root
 
     formulas.each do |pkg|
@@ -192,11 +192,7 @@ the conventions of OS X installer packages.
     # Patchelf
     files = Dir.entries(File.join(staging_root, 'bin')).reject { |e| e == '.' || e == '..' }
     files.each do |file|
-      ohai('PATCHELF:')
-      ohai(file)
-      ohai(options[:output_dir])
-      ohai(HOMEBREW_PREFIX + File::SEPARATOR)
-      ohai(File.join('bin', file))
+      ohai "PREFIX #{HOMEBREW_PREFIX + File::SEPARATOR}"
       patchelf(options[:output_dir], HOMEBREW_PREFIX + File::SEPARATOR, File.join('bin', file))
     end
 
