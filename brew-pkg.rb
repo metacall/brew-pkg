@@ -4,6 +4,11 @@ require 'optparse'
 require 'tmpdir'
 require 'open3'
 
+def patchelf(binary)
+  stdout, status = Open3.capture2("otool -L #{binary}")
+  old_lib = stdout.lines.grep(/#{lib_regex}/).first&.split&.first
+end
+
 # # change the hardcoded ../Frameworks relative path that Xcode does by rewriting the binaries after the build
 # # check with:
 # #   otool -L <binary>

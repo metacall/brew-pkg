@@ -143,6 +143,6 @@ jobs:
               INSTALL_DIR="/usr/local"
           fi
           ${INSTALL_DIR}/bin/python3 -c 'import sys; print(sys.argv)'
-          otool -L ./distributable/bin/python3
+          otool -L ${INSTALL_DIR}/bin/python3
           ${INSTALL_DIR}/bin/ruby -e "require 'date'; puts Date.today"
-          otool -L ./distributable/bin/ruby
+          otool -L ${INSTALL_DIR}/bin/ruby
