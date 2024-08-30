@@ -7,18 +7,12 @@ require 'pathname'
 
 module Homebrew extend self
   def elf_file?(file_path)
-    ohai "1 ELF? " + file_path
-
     # Check if the file exists
     return false unless File.exist?(file_path)
-
-    ohai "2 ELF? " + file_path
 
     File.open(file_path, "rb") do |file|
       # Read the first 4 bytes
       header = file.read(4)
-
-      ohai "3 ELF? #{header == "\x7FELF"}"
 
       # Check for ELF format
       return header == "\x7FELF"
@@ -26,13 +20,13 @@ module Homebrew extend self
   end
 
   def patchelf(root_dir, prefix_path, binary)
-    ohai "1) AAAAAAAAAAAAAAAAAAAAAA"
 
     # Get the full binary path and check if it's a valid ELF
     binary_path = File.join(root_dir, prefix_path, binary)
-    return unless elf_file?(binary_path)
 
-    ohai "2) AAAAAAAAAAAAAAAAAAAAAA #{binary_path}"
+    # TODO:
+    # return unless elf_file?(binary_path)
+    return unless File.exist?(binary_path)
 
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
