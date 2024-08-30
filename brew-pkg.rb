@@ -191,7 +191,7 @@ the conventions of OS X installer packages.
 
     # Patchelf
     files = Dir.entries(File.join(staging_root, 'bin')).reject { |e| e == '.' || e == '..' }
-    files.each |file| { patchelf(options[:output_dir], "#{HOMEBREW_PREFIX}/", File.join('bin', file)) }
+    files.each { |file| patchelf(options[:output_dir], "#{HOMEBREW_PREFIX}/", File.join('bin', file)) }
 
     # Zip it
     if options[:compress]
