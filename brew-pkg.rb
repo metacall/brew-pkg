@@ -30,36 +30,34 @@ module Homebrew extend self
 
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
-    lib_paths = stdout.lines.grep(/#{prefix_path}/).map(&:lstrip)
-
-    ohai "3) AAAAAAAAAAAAAAAAAAAAAA #{stdout}"
-    ohai "3.2) AAAAAAAAAAAAAAAAAAAAAA #{prefix_path}"
-    ohai "3.3) AAAAAAAAAAAAAAAAAAAAAA #{lib_paths}"
+    stdout_lines = stdout.lines[1..-1]
+    lib_paths = stdout_lines.grep(/#{prefix_path}/).map(&:lstrip)
 
     # Iterate through all libraries that the binary is linked to
     lib_paths.each do |lib|
-      ohai "4) AAAAAAAAAAAAAAAAAAAAAA #{lib}"
+      # TODO:
+      # if File.exist?(lib)
 
-      if File.exist?(lib)
-        ohai "5) AAAAAAAAAAAAAAAAAAAAAA #{lib}"
+      ohai "5) AAAAAAAAAAAAAAAAAAAAAA #{lib}"
 
-        # Obtain the relative path from the executable
-        relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, File.dirname(binary))))
-        new_lib = File.join('@executable_path', relative_path)
+      # Obtain the relative path from the executable
+      relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, File.dirname(binary))))
+      new_lib = File.join('@executable_path', relative_path)
 
-        ohai "6) AAAAAAAAAAAAAAAAAAAAAA #{new_lib}"
+      ohai "6) AAAAAAAAAAAAAAAAAAAAAA #{new_lib}"
 
-        # Patch the library path relative to the binary path
-        system("install_name_tool", "-change", lib, new_lib, binary_path)
+      # Patch the library path relative to the binary path
+      system("install_name_tool", "-change", lib, new_lib, binary_path)
 
-        # Debug
-        stdout, status = Open3.capture2("otool -L #{binary_path}")
-        ohai "#{binary_path}:"
-        ohai "#{stdout}"
+      # Debug
+      stdout, status = Open3.capture2("otool -L #{binary_path}")
+      ohai "#{binary_path}:"
+      ohai "#{stdout}"
 
-        # Recursively iterate through libraries
-        patchelf(root_path, prefix_path, lib.delete_prefix(prefix_path))
-      end
+      # Recursively iterate through libraries
+      patchelf(root_path, prefix_path, lib.delete_prefix(prefix_path))
+
+      # end
     end
   end
 
