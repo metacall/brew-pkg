@@ -33,6 +33,8 @@ module Homebrew extend self
     lib_paths = stdout.lines.grep(/#{prefix_path}/).map(&:lstrip)
 
     ohai "3) AAAAAAAAAAAAAAAAAAAAAA #{stdout}"
+    ohai "3.2) AAAAAAAAAAAAAAAAAAAAAA #{prefix_path}"
+    ohai "3.3) AAAAAAAAAAAAAAAAAAAAAA #{lib_paths}"
 
     # Iterate through all libraries that the binary is linked to
     lib_paths.each do |lib|
