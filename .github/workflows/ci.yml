@@ -108,7 +108,9 @@ jobs:
           tar -xvzf ruby-with-python.tgz -C `pwd`/distributable
           export PATH="`pwd`/distributable/bin:$PATH"
           ./distributable/bin/python3 -c 'import sys; print(sys.argv)'
+          otool -L ./distributable/bin/python3
           ./distributable/bin/ruby -e "require 'date'; puts Date.today"
+          otool -L ./distributable/bin/ruby
 
   test-pkg:
     name: Run Test Distributable PKG
@@ -141,4 +143,6 @@ jobs:
               INSTALL_DIR="/usr/local"
           fi
           ${INSTALL_DIR}/bin/python3 -c 'import sys; print(sys.argv)'
+          otool -L ./distributable/bin/python3
           ${INSTALL_DIR}/bin/ruby -e "require 'date'; puts Date.today"
+          otool -L ./distributable/bin/ruby

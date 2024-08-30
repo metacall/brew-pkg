@@ -63,6 +63,23 @@ require 'open3'
 #   end
 # end
 
+# change_library_path() {
+#   loader=$1
+#   lib_regex=$INSTALL_DIR
+#   metacall_lib=distributable/metacall-core/lib/lib${loader}_loader.so
+
+#   old_lib=$(otool -L "$metacall_lib" | grep -E "$lib_regex" | awk '{print $1}')
+#   old_lib_regex=$(echo $old_lib | awk -F'/' '{print $(NF-2)"/"$(NF-1)"/"$NF}') # Get the path suffix
+#   new_lib=$(cd distributable && find . -type f -regex ".*/$old_lib_regex")
+
+#   if [ -n "$old_lib" ] && [ -n "$new_lib" ]; then
+#     install_name_tool -change "$old_lib" "@loader_path/../.$new_lib" "$metacall_lib"
+#     echo "Updated $loader loader: $old_lib -> $new_lib"
+#   else
+#     echo "Failed to update $loader loader: Could not find the old or new library path."
+#   fi
+# }
+
 module Homebrew extend self
   def pkg
     options = {
