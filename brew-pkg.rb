@@ -191,11 +191,7 @@ the conventions of OS X installer packages.
 
     # Patchelf
     files = Dir.entries(File.join(staging_root, 'bin')).reject { |e| e == '.' || e == '..' }
-    files.each do |file|
-      ohai "PREFIX #{HOMEBREW_PREFIX}"
-      ohai "PREFIX #{HOMEBREW_PREFIX + File::SEPARATOR}"
-      patchelf(options[:output_dir], HOMEBREW_PREFIX + File::SEPARATOR, File.join('bin', file))
-    end
+    files.each |file| { patchelf(options[:output_dir], "#{HOMEBREW_PREFIX}/", File.join('bin', file)) }
 
     # Zip it
     if options[:compress]
