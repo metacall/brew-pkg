@@ -5,33 +5,33 @@ require 'tmpdir'
 require 'open3'
 require 'pathname'
 
-def patchelf(root_dir, prefix, binary)
-  puts('DEBUG PATCHELF:')
-  puts(root_dir)
-  puts(prefix)
-  puts(binary)
-  binary_path = File.join(root_dir, prefix, binary)
-  puts(binary_path)
-  return unless File.exist?(binary_path)
-  puts("otool -L #{binary_path}")
-  stdout, status = Open3.capture2("otool -L #{binary_path}")
-  puts(stdout)
-  lib_paths = stdout.lines.grep(/#{prefix}/).map(&:lstrip)
-  puts(lib_paths)
-  lib_paths.each do |lib|
-    if File.exist?(lib)
-      relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix, File.dirname(binary))))
-      new_lib = File.join('@executable_path', relative_path)
-      puts("install_name_tool", "-change", lib, new_lib, binary_path)
-      system("install_name_tool", "-change", lib, new_lib, binary_path)
+module Homebrew extend self
+  def patchelf(root_dir, prefix, binary)
+    ohai('DEBUG PATCHELF:')
+    ohai(root_dir)
+    ohai(prefix)
+    ohai(binary)
+    binary_path = File.join(root_dir, prefix, binary)
+    ohai(binary_path)
+    return unless File.exist?(binary_path)
+    ohai("otool -L #{binary_path}")
+    stdout, status = Open3.capture2("otool -L #{binary_path}")
+    ohai(stdout)
+    lib_paths = stdout.lines.grep(/#{prefix}/).map(&:lstrip)
+    ohai(lib_paths)
+    lib_paths.each do |lib|
+      if File.exist?(lib)
+        relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix, File.dirname(binary))))
+        new_lib = File.join('@executable_path', relative_path)
+        ohai("install_name_tool", "-change", lib, new_lib, binary_path)
+        system("install_name_tool", "-change", lib, new_lib, binary_path)
 
-      # Recursively iterate through libraries
-      patchelf(root_path, prefix, lib.delete_prefix(prefix))
+        # Recursively iterate through libraries
+        patchelf(root_path, prefix, lib.delete_prefix(prefix))
+      end
     end
   end
-end
 
-module Homebrew extend self
   def pkg
     options = {
       identifier_prefix: 'org.homebrew',
@@ -167,15 +167,12 @@ the conventions of OS X installer packages.
 
       # Get all directories for this keg, rsync to the staging root
       if File.exist?(File.join(HOMEBREW_CELLAR, formula.name, dep_version))
-
         dirs = Pathname.new(File.join(HOMEBREW_CELLAR, formula.name, dep_version)).children.select { |c| c.directory? }.collect { |p| p.to_s }
 
         dirs.each { |d| safe_system "rsync", "-a", "#{d}", "#{staging_root}/" }
 
         if File.exist?("#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}") && !options[:without_deps]
-
           ohai "Staging directory #{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}"
-
           safe_system "mkdir", "-p", "#{staging_root}/Cellar/#{formula.name}/"
           safe_system "rsync", "-a", "#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}", "#{staging_root}/Cellar/#{formula.name}/"
         end
