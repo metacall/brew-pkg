@@ -21,8 +21,17 @@ module Homebrew extend self
 
   def patchelf(root_dir, prefix_path, binary)
 
+    ohai "Debug root dir #{root_dir}"
+    system("ls", "-la", root_dir)
+
     # Get the full binary path and check if it's a valid ELF
     binary_path = File.join(root_dir, prefix_path, binary)
+
+    ohai "Debug root dir + prefix path #{root_dir + prefix_path}"
+    system("ls", "-la", "#{root_dir + prefix_path}")
+
+    ohai "Debug binary_path #{binary_path}"
+    system("ls", "-la", "#{binary_path}")
 
     # TODO: Elf check does not work
     # return unless elf_file?(binary_path)
@@ -31,30 +40,32 @@ module Homebrew extend self
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
     stdout_lines = stdout.lines[1..-1]
-    lib_paths = stdout_lines.grep(/#{prefix_path}/).map(&:lstrip).map { |path| root_dir + path }
+    lib_paths = stdout_lines.grep(/#{prefix_path}/).map(&:lstrip)
 
     # Iterate through all libraries that the binary is linked to
     lib_paths.each do |lib|
-      # TODO: File exists does not work
-      # if File.exist?(lib)
-      ohai "Check if file exists #{lib} : #{File.exist?(lib)}"
+      lib_path = root_dir + lib
+
+      ohai "Check if file exists #{lib_path} : #{File.exist?(lib_path)}"
       system("ls", "-la", lib)
+      system("ls", "-la", lib_path)
 
-      # Obtain the relative path from the executable
-      relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, File.dirname(binary))))
-      new_lib = File.join('@executable_path', relative_path)
+      # TODO: File exists does not work
+      if File.exist?(lib_path)
+        # Obtain the relative path from the executable
+        relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, File.dirname(binary))))
+        new_lib = File.join('@executable_path', relative_path)
 
-      # Patch the library path relative to the binary path
-      system("install_name_tool", "-change", lib, new_lib, binary_path)
+        # Patch the library path relative to the binary path
+        system("install_name_tool", "-change", lib, new_lib, binary_path)
 
-      # Debug
-      stdout, status = Open3.capture2("otool -L #{binary_path}")
-      ohai "#{stdout}"
+        # Debug (TODO: Remove this)
+        stdout, status = Open3.capture2("otool -L #{binary_path}")
+        ohai "#{stdout}"
 
-      # Recursively iterate through libraries
-      patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path))
-
-      # end
+        # Recursively iterate through libraries
+        patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path))
+      end
     end
   end
 
