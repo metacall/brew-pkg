@@ -31,7 +31,7 @@ module Homebrew extend self
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
     stdout_lines = stdout.lines[1..-1]
-    lib_paths = stdout_lines.grep(/#{prefix_path}/).map(&:lstrip)
+    lib_paths = stdout_lines.grep(/#{prefix_path}/).map(&:lstrip).map { |path| root_dir + path }
 
     # Iterate through all libraries that the binary is linked to
     lib_paths.each do |lib|
