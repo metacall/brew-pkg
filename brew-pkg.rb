@@ -38,13 +38,13 @@ module Homebrew extend self
 
     # Iterate through all libraries that the binary is linked to
     lib_paths.each do |lib|
-      lib_path = File.realpath(File.join(root_dir, lib))
-
-      ohai "Check if file exists (#{lib_path}) #{lib_path} : #{File.exist?(lib_path)}"
-      system("ls", "-la", lib)
-      system("ls", "-la", lib_path)
+      lib_path = (File.realpath(File.join(root_dir, lib)) rescue nil)
 
       if File.exist?(lib_path)
+        ohai "Check if file exists (#{lib}) #{lib_path} : #{File.exist?(lib_path)}"
+        system("ls", "-la", lib)
+        system("ls", "-la", lib_path)
+
         # Obtain the relative path from the executable
         relative_path = Pathname.new(lib_path).relative_path_from(Pathname.new(binary_path))
         new_lib = File.join('@executable_path', relative_path)
