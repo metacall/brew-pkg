@@ -39,7 +39,7 @@ module Homebrew extend self
     stdout_lines = stdout.lines[1..-1]
 
     # Get all the paths from the prefix path and strip left and remove the right data inside the parenthesis
-    lib_paths = stdout_lines.grep(/#{prefix_path}/).map(&:lstrip).map { |path| path.sub(/ \(.*$/, '') }
+    lib_paths = stdout_lines.grep(/#{prefix_path}/).map(&:lstrip).map { |path| path.sub(/ \(.*$/m, '') }
 
     ohai "------------- LIBPATHS: #{lib_paths}"
 
