@@ -20,10 +20,11 @@ module Homebrew extend self
     # Get the full binary path and check if it's a valid ELF
     binary_path = File.join(root_dir, prefix_path, binary)
 
-    ohai "Check binary #{binary_path} : #{elf_file?(binary_path)}"
-
     # Check if file exists and it is an executable
     return unless elf_file?(binary_path)
+
+    ohai "Check if file exists #{binary_path}}"
+    system("ls", "-la", "#{root_dir}/Cellar/")
 
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
