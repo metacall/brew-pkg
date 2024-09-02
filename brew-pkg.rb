@@ -16,9 +16,10 @@ module Homebrew extend self
   end
 
   def patchelf(root_dir, prefix_path, binary)
+    full_prefix_path = File.join(root_dir, prefix_path)
 
     # Get the full binary path and check if it's a valid ELF
-    binary_path = File.realpath(File.join(root_dir, prefix_path, binary))
+    binary_path = File.realpath(File.join(full_prefix_path, binary))
 
     # Check if file exists and it is an executable
     return unless elf_file?(binary_path)
@@ -46,7 +47,7 @@ module Homebrew extend self
         system("ls", "-la", lib_path)
 
         # Obtain the relative path from the executable
-        relative_path = Pathname.new(lib.delete_prefix(prefix_path)).relative_path_from(Pathname.new(binary))
+        relative_path = Pathname.new(lib_path.delete_prefix(full_prefix_path)).relative_path_from(Pathname.new(binary_path.delete_prefix(full_prefix_path)))
         new_lib = File.join('@executable_path', relative_path)
 
         # Patch the library path relative to the binary path
