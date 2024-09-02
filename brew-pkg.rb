@@ -11,28 +11,16 @@ module Homebrew extend self
     return false unless File.exist?(file_path)
 
     stdout, status = Open3.capture2("file -bL --mime-encoding \"#{file_path}\"")
-    ohai "Debug file is elf #{stdout}"
 
-    return true
-
-    # File.open(file_path, "rb") do |file|
-    #   # Read the first 4 bytes
-    #   header = file.read(4)
-
-    #   ohai "Debug file is elf #{header[0].to_i} == \x7FELF"
-    #   ohai "Debug file is elf #{header[1].to_i} == \x7FELF"
-    #   ohai "Debug file is elf #{header[2].to_i} == \x7FELF"
-    #   ohai "Debug file is elf #{header[3].to_i} == \x7FELF"
-
-    #   # Check for ELF format
-    #   return header == "\x7FELF"
-    # end
+    return stdout.strip == 'binary'
   end
 
   def patchelf(root_dir, prefix_path, binary)
 
     # Get the full binary path and check if it's a valid ELF
     binary_path = File.join(root_dir, prefix_path, binary)
+
+    ohai "Check binary #{binary_path} : #{elf_file?(binary_path)}"
 
     # Check if file exists and it is an executable
     return unless elf_file?(binary_path)
