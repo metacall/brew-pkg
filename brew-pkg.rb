@@ -40,7 +40,7 @@ module Homebrew extend self
     lib_paths.each do |lib|
       lib_path = (File.realpath(File.join(root_dir, lib)) rescue nil)
 
-      if File.exist?(lib_path)
+      if lib_path
         ohai "Check if file exists (#{lib}) #{lib_path} : #{File.exist?(lib_path)}"
         system("ls", "-la", lib)
         system("ls", "-la", lib_path)
