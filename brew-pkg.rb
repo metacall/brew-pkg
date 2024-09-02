@@ -23,8 +23,8 @@ module Homebrew extend self
     # Check if file exists and it is an executable
     return unless elf_file?(binary_path)
 
-    ohai "Check if file exists #{binary_path}}"
-    system("ls", "-la", "#{root_dir}/Cellar/")
+    ohai "Check if file exists #{binary_path}"
+    system("ls", "-la", "#{root_dir}/#{prefix_path}/Cellar/")
 
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
