@@ -42,13 +42,15 @@ module Homebrew extend self
       lib_path = (File.realpath(File.join(root_dir, lib)) rescue nil)
 
       if lib_path
-        ohai "Check if file exists (#{lib}) #{lib_path} : #{File.exist?(lib_path)}"
-        system("ls", "-la", lib)
-        system("ls", "-la", lib_path)
-
         # Obtain the relative path from the executable
-        relative_path = Pathname.new(lib_path.delete_prefix(full_prefix_path)).relative_path_from(Pathname.new(binary_path.delete_prefix(full_prefix_path)))
+        lib_relative_path = File.dirname(lib_path).delete_prefix(full_prefix_path)
+        binary_relative_path = File.dirname(binary_path).delete_prefix(full_prefix_path)
+        relative_path = Pathname.new(lib_relative_path).relative_path_from(Pathname.new(binary_relative_path))
         new_lib = File.join('@executable_path', relative_path)
+
+        ohai "lib_relative_path: #{lib_relative_path}"
+        ohai "binary_relative_path: #{binary_relative_path}"
+        ohai "relative_path: #{relative_path}"
 
         # Patch the library path relative to the binary path
         system("install_name_tool", "-change", lib, new_lib, binary_path)
@@ -228,7 +230,7 @@ the conventions of OS X installer packages.
     if options[:compress]
       tgzfile = "#{options[:package_name]}.tgz"
       ohai "Compressing package #{tgzfile}"
-      args = [ "-czf", tgzfile, "-C", staging_root, "." ]
+      args = [ "-czf", tgzfile, "-C", options[:output_dir], "." ]
       safe_system "tar", *args
     end
 
