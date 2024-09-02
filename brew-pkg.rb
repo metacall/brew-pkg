@@ -46,7 +46,7 @@ module Homebrew extend self
         system("ls", "-la", lib_path)
 
         # Obtain the relative path from the executable
-        relative_path = Pathname.new(lib_path).relative_path_from(Pathname.new(binary_path))
+        relative_path = Pathname.new(lib.delete_prefix(prefix_path)).relative_path_from(Pathname.new(binary))
         new_lib = File.join('@executable_path', relative_path)
 
         # Patch the library path relative to the binary path
