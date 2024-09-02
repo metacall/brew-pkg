@@ -14,6 +14,8 @@ module Homebrew extend self
       # Read the first 4 bytes
       header = file.read(4)
 
+      ohai "Debug file is elf #{header} == \x7FELF"
+
       # Check for ELF format
       return header == "\x7FELF"
     end
@@ -21,21 +23,13 @@ module Homebrew extend self
 
   def patchelf(root_dir, prefix_path, binary)
 
-    ohai "Debug root dir #{root_dir}"
-    system("ls", "-la", root_dir)
-
     # Get the full binary path and check if it's a valid ELF
     binary_path = File.join(root_dir, prefix_path, binary)
 
-    ohai "Debug root dir + prefix path #{root_dir + prefix_path}"
-    system("ls", "-la", "#{root_dir + prefix_path}")
-
-    ohai "Debug binary_path #{binary_path}"
-    system("ls", "-la", "#{binary_path}")
-
     # TODO: Elf check does not work
-    # return unless elf_file?(binary_path)
-    return unless File.exist?(binary_path)
+    ohai "Debug file is elf #{elf_file?(binary_path)}"
+    return unless elf_file?(binary_path)
+    # return unless File.exist?(binary_path)
 
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
