@@ -37,6 +37,8 @@ module Homebrew extend self
     lib_paths.each do |lib|
       # TODO: File exists does not work
       # if File.exist?(lib)
+      ohai "Check if file exists #{lib} : #{File.exist?(lib)}"
+      system("ls", "-la", lib)
 
       # Obtain the relative path from the executable
       relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, File.dirname(binary))))
