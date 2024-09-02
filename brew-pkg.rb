@@ -32,6 +32,9 @@ module Homebrew extend self
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
 
+    ohai "------------- OTOOL: #{stdout}"
+
+
     # Remove the first line which is unnecesary
     stdout_lines = stdout.lines[1..-1]
 
