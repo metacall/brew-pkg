@@ -14,7 +14,10 @@ module Homebrew extend self
       # Read the first 4 bytes
       header = file.read(4)
 
-      ohai "Debug file is elf #{header} == \x7FELF"
+      ohai "Debug file is elf #{header[0].to_i} == \x7FELF"
+      ohai "Debug file is elf #{header[1].to_i} == \x7FELF"
+      ohai "Debug file is elf #{header[2].to_i} == \x7FELF"
+      ohai "Debug file is elf #{header[3].to_i} == \x7FELF"
 
       # Check for ELF format
       return header == "\x7FELF"
@@ -37,7 +40,7 @@ module Homebrew extend self
     # Remove the first line which is unnecesary
     stdout_lines = stdout.lines[1..-1]
 
-    # Get all the paths from the prefix path and strip left and remove the right data insithe parenthesis
+    # Get all the paths from the prefix path and strip left and remove the right data inside the parenthesis
     lib_paths = stdout_lines.grep(/#{prefix_path}/).map(&:lstrip).map { |path| path.sub(/ \(.*$/, '') }
 
     # Iterate through all libraries that the binary is linked to
