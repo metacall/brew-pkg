@@ -41,6 +41,8 @@ module Homebrew extend self
     # Get all the paths from the prefix path and strip left and remove the right data inside the parenthesis
     lib_paths = stdout_lines.grep(/#{prefix_path}/).map(&:lstrip).map { |path| path.sub(/ \(.*$/, '') }
 
+    ohai "------------- LIBPATHS: #{lib_paths}"
+
     # Iterate through all libraries that the binary is linked to
     lib_paths.each do |lib|
       lib_path = root_dir + lib
