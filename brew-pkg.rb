@@ -14,22 +14,17 @@ module Homebrew extend self
       # Read the first 4 bytes
       header = file.read(4)
 
-      ohai "Debug file is elf #{header[0].to_i} == \x7FELF"
-      ohai "Debug file is elf #{header[1].to_i} == \x7FELF"
-      ohai "Debug file is elf #{header[2].to_i} == \x7FELF"
-      ohai "Debug file is elf #{header[3].to_i} == \x7FELF"
-
       # Check for ELF format
       return header == "\x7FELF"
     end
   end
 
   def patchelf(root_dir, prefix_path, binary)
-
     # Get the full binary path and check if it's a valid ELF
     binary_path = File.join(root_dir, prefix_path, binary)
 
     # TODO: Elf check does not work
+    ohai "Debug file exists #{binary_path}: #{File.exist?(binary_path)}"
     ohai "Debug file is elf #{elf_file?(binary_path)}"
     # return unless elf_file?(binary_path)
     return unless File.exist?(binary_path)
