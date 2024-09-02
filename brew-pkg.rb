@@ -43,7 +43,7 @@ module Homebrew extend self
 
       if lib_path
         # Obtain the relative path from the executable
-        lib_relative_path = File.dirname(lib_path).delete_prefix(full_prefix_path)
+        lib_relative_path = lib_path.delete_prefix(full_prefix_path)
         binary_relative_path = File.dirname(binary_path).delete_prefix(full_prefix_path)
         relative_path = Pathname.new(lib_relative_path).relative_path_from(Pathname.new(binary_relative_path))
         new_lib = File.join('@executable_path', relative_path)
