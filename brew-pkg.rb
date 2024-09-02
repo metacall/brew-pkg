@@ -18,22 +18,15 @@ module Homebrew extend self
   def patchelf(root_dir, prefix_path, binary)
 
     # Get the full binary path and check if it's a valid ELF
-    binary_path = File.join(root_dir, prefix_path, binary)
+    binary_path = File.realpath(File.join(root_dir, prefix_path, binary))
 
     # Check if file exists and it is an executable
     return unless elf_file?(binary_path)
-
-    ohai "Check if file exists #{binary_path}"
-    system("ls", "-la", "#{root_dir}/#{prefix_path}/bin")
-    system("ls", "-la", "#{root_dir}/#{prefix_path}/lib")
-    system("ls", "-la", "#{root_dir}/#{prefix_path}/Cellar/ruby")
-    system("ls", "-la", "#{root_dir}/#{prefix_path}/Cellar/python@12")
 
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
 
     ohai "------------- OTOOL: #{stdout}"
-
 
     # Remove the first line which is unnecesary
     stdout_lines = stdout.lines[1..-1]
@@ -45,16 +38,15 @@ module Homebrew extend self
 
     # Iterate through all libraries that the binary is linked to
     lib_paths.each do |lib|
-      lib_path = root_dir + lib
+      lib_path = File.realpath(File.join(root_dir, lib))
 
-      ohai "Check if file exists #{lib_path} : #{File.exist?(lib_path)}"
+      ohai "Check if file exists (#{lib_path}) #{lib_path} : #{File.exist?(lib_path)}"
       system("ls", "-la", lib)
       system("ls", "-la", lib_path)
 
-      # TODO: File exists does not work
       if File.exist?(lib_path)
         # Obtain the relative path from the executable
-        relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, File.dirname(binary))))
+        relative_path = Pathname.new(lib_path).relative_path_from(Pathname.new(binary_path))
         new_lib = File.join('@executable_path', relative_path)
 
         # Patch the library path relative to the binary path
