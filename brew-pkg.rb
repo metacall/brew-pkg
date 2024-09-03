@@ -41,7 +41,7 @@ module Homebrew extend self
     lib_paths.each do |lib|
       lib_path = (File.realpath(File.join(root_dir, lib)) rescue nil)
 
-      if lib_path
+      if lib_path && lib_path != binary_path
         # Obtain the relative path from the executable
         lib_relative_path = lib_path.delete_prefix(full_prefix_path)
         binary_relative_path = File.dirname(binary_path).delete_prefix(full_prefix_path)
