@@ -15,7 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  os: [macos-13, macos-14] # TODO: Add macos-12
+  # TODO: Add macos-12
+  os: [macos-13, macos-14]
 
 jobs:
   build:
