@@ -14,13 +14,16 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  os: [macos-13, macos-14] # TODO: Add macos-12
+
 jobs:
   build:
     name: Build Test Distributable
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-12, macos-13, macos-14]
+        os: ${{ env.os }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out the repository
@@ -88,7 +91,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-12, macos-13, macos-14]
+        os: ${{ env.os }}
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -104,12 +107,14 @@ jobs:
       # Test the package in a clean environment
       - name: Test
         run: |
-          sudo tar -xvzf ruby-with-python.tgz -C /
+          tar -xvzf ruby-with-python.tgz -C `pwd`
           if [ "$(uname -m)" = "arm64" ]; then
               INSTALL_DIR="/opt/homebrew"
           else
               INSTALL_DIR="/usr/local"
           fi
+          sudo mkdir -p ${INSTALL_DIR}
+          sudo mv `pwd`${INSTALL_DIR} ${INSTALL_DIR}
           export PATH="${INSTALL_DIR}/bin:$PATH"
           otool -L ${INSTALL_DIR}/bin/python3
           otool -L ${INSTALL_DIR}/bin/ruby
@@ -122,7 +127,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-12, macos-13, macos-14]
+        os: ${{ env.os }}
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -157,7 +162,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-12, macos-13, macos-14]
+        os: ${{ env.os }}
     runs-on: ${{ matrix.os }}
     steps:
 
