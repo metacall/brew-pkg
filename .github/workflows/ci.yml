@@ -14,17 +14,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  # TODO: Add macos-12
-  os: [macos-13, macos-14]
-
 jobs:
   build:
     name: Build Test Distributable
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ env.os }}
+        os: [macos-13, macos-14] # TODO: Add macos-12
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out the repository
@@ -92,7 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ env.os }}
+        os: [macos-13, macos-14] # TODO: Add macos-12
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -128,7 +124,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ env.os }}
+        os: [macos-13, macos-14] # TODO: Add macos-12
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -163,7 +159,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ env.os }}
+        os: [macos-13, macos-14] # TODO: Add macos-12
     runs-on: ${{ matrix.os }}
     steps:
 
