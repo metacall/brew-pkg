@@ -118,9 +118,8 @@ jobs:
           export RUBYLIB="${INSTALL_DIR}/lib/ruby/3.3.0:${INSTALL_DIR}/lib/ruby/3.3.0/${RUBY_PLATFORM_PAIR}"
           export GEM_PATH="${INSTALL_DIR}/lib/ruby/gems/3.3.0"
           otool -L ${INSTALL_DIR}/bin/python3
-          otool -L ${INSTALL_DIR}/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/Python || true
-          file -bL --mime-encoding "${INSTALL_DIR}/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python" || true
-          otool -L ${INSTALL_DIR}/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python || true
+          otool -L ${INSTALL_DIR}/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/Python
+          otool -L ${INSTALL_DIR}/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python
           otool -L ${INSTALL_DIR}/bin/ruby
           ${INSTALL_DIR}/bin/python3 -c 'import sys; print(sys.argv)'
           ${INSTALL_DIR}/bin/ruby -e "require 'date'; puts Date.today"

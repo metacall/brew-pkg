@@ -58,9 +58,6 @@ module Homebrew extend self
         ohai "install_name_tool -id #{new_lib} #{binary_path}"
         system("install_name_tool", "-id", new_lib, binary_path)
       else
-        # Recursively iterate through libraries
-        patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path), '@loader_path')
-
         # Obtain the relative path from the executable or library
         lib_relative_path = lib_path.delete_prefix(full_prefix_path)
         binary_relative_path = File.dirname(binary_path).delete_prefix(full_prefix_path)
@@ -77,6 +74,11 @@ module Homebrew extend self
       ohai "After patching:"
       ohai "#{stdout}"
       ohai "patchelf(#{root_dir}, #{prefix_path}, #{lib.delete_prefix(prefix_path)})"
+
+      if lib_path != binary_path
+        # Recursively iterate through libraries
+        patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path), '@loader_path')
+      end
     end
   end
 
