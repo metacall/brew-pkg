@@ -51,7 +51,12 @@ module Homebrew extend self
         opoo "The link '#{File.join(root_dir, lib)}' refers to itself: '#{binary_path}'"
 
         # Obtain the relative path from the library
-        relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.dirname(File.join(prefix_path, binary))))
+        relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, 'bin')))
+        new_lib = File.join('@executable_path', relative_path)
+
+        # Patch the library path name
+        ohai "install_name_tool -id #{new_lib} #{binary_path}"
+        system("install_name_tool", "-id", new_lib, binary_path)
       else
         # Recursively iterate through libraries
         patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path), '@loader_path')
@@ -60,13 +65,12 @@ module Homebrew extend self
         lib_relative_path = lib_path.delete_prefix(full_prefix_path)
         binary_relative_path = File.dirname(binary_path).delete_prefix(full_prefix_path)
         relative_path = Pathname.new(lib_relative_path).relative_path_from(Pathname.new(binary_relative_path))
+        new_lib = File.join(format, relative_path)
+
+        # Patch the library path relative to the binary path
+        ohai "install_name_tool -change #{lib} #{new_lib} #{binary_path}"
+        system("install_name_tool", "-change", lib, new_lib, binary_path)
       end
-
-      new_lib = File.join(format, relative_path)
-
-      # Patch the library path relative to the binary path
-      ohai "install_name_tool -change #{lib} #{new_lib} #{binary_path}"
-      system("install_name_tool", "-change", lib, new_lib, binary_path)
 
       # Debug information
       stdout, status = Open3.capture2("otool -L #{binary_path}")
