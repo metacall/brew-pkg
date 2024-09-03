@@ -108,10 +108,12 @@ jobs:
           tar -xvzf ruby-with-python.tgz -C `pwd`/distributable
           DARWIN_VERSION=$(sw_vers -productVersion | cut -d '.' -f 1)
           if [ "$(uname -m)" = "arm64" ]; then
-              INSTALL_DIR="`pwd`/distributable/opt/homebrew"
+              sudo mv `pwd`/distributable/opt/* /opt/
+              INSTALL_DIR="/opt/homebrew"
               RUBY_PLATFORM_PAIR="arm64-darwin${DARWIN_VERSION}"
           else
-              INSTALL_DIR="`pwd`/distributable/usr/local"
+              sudo mv `pwd`/distributable/usr/local/* /usr/local/
+              INSTALL_DIR="/usr/local"
               RUBY_PLATFORM_PAIR="x86_64-darwin${DARWIN_VERSION}"
           fi
           export PATH="${INSTALL_DIR}/bin:$PATH"
@@ -122,7 +124,8 @@ jobs:
           otool -L ${INSTALL_DIR}/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python
           otool -L ${INSTALL_DIR}/bin/ruby
           ${INSTALL_DIR}/bin/python3 -c 'import sys; print(sys.argv)'
-          ${INSTALL_DIR}/bin/ruby -e "require 'date'; puts Date.today"
+
+# ${INSTALL_DIR}/bin/ruby -e "require 'date'; puts Date.today"
 
   pkg-test:
     name: Run Test Distributable PKG

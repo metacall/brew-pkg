@@ -73,10 +73,10 @@ module Homebrew extend self
       stdout, status = Open3.capture2("otool -L #{binary_path}")
       ohai "After patching:"
       ohai "#{stdout}"
-      ohai "patchelf(#{root_dir}, #{prefix_path}, #{lib.delete_prefix(prefix_path)})"
 
       if lib_path != binary_path
         # Recursively iterate through libraries
+        ohai "patchelf(#{root_dir}, #{prefix_path}, #{lib.delete_prefix(prefix_path)})"
         patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path), '@loader_path')
       end
     end
