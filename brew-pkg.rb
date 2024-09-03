@@ -15,7 +15,7 @@ module Homebrew extend self
     return stdout.strip == 'binary'
   end
 
-  def patchelf(root_dir, prefix_path, binary)
+  def patchelf(root_dir, prefix_path, binary, format='@executable_path')
     full_prefix_path = File.join(root_dir, prefix_path)
 
     # Get the full binary path and check if it's a valid ELF
@@ -46,9 +46,10 @@ module Homebrew extend self
         lib_relative_path = lib_path.delete_prefix(full_prefix_path)
         binary_relative_path = File.dirname(binary_path).delete_prefix(full_prefix_path)
         relative_path = Pathname.new(lib_relative_path).relative_path_from(Pathname.new(binary_relative_path))
-        new_lib = File.join('@executable_path', relative_path)
+        new_lib = File.join(format, relative_path)
 
         # Patch the library path relative to the binary path
+        ohai "install_name_tool -change #{lib} #{new_lib} #{binary_path}"
         system("install_name_tool", "-change", lib, new_lib, binary_path)
 
         # Debug information
@@ -58,7 +59,7 @@ module Homebrew extend self
         ohai "patchelf(#{root_dir}, #{prefix_path}, #{lib.delete_prefix(prefix_path)})"
 
         # Recursively iterate through libraries
-        patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path))
+        patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path), '@rpath')
       else
         opoo "File 'File.realpath(File.join(#{root_dir}, #{lib})' not found"
       end
@@ -209,7 +210,7 @@ the conventions of OS X installer packages.
           safe_system "mkdir", "-p", "#{staging_root}/Cellar/#{formula.name}/"
           safe_system "rsync", "-a", "#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}", "#{staging_root}/Cellar/#{formula.name}/"
           safe_system "mkdir", "-p", "#{staging_root}/opt"
-          safe_system "ln", "-s", "../Cellar/#{formula.name}/#{dep_version}", "#{staging_root}/opt/#{formula.name}"
+          safe_system "ln", "-s", "#{staging_root}/Cellar/#{formula.name}/#{dep_version}", "#{staging_root}/opt/#{formula.name}"
         end
       end
 
