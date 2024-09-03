@@ -83,43 +83,7 @@ jobs:
           path: distributable/*
 
   tgz-test:
-    name: Run Test Distributable TGZ
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-13, macos-14] # TODO: Add macos-12
-    runs-on: ${{ matrix.os }}
-    steps:
-
-      # Clean up previous dependencies in order to avoid conflicts with brew
-      - name: Uninstall brew completely
-        run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
-
-      - name: Download the artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: metacall-tarball-${{ matrix.os }}
-
-      # Test the package in a clean environment
-      - name: Test
-        run: |
-          tar -xvzf ruby-with-python.tgz -C `pwd`
-          if [ "$(uname -m)" = "arm64" ]; then
-              INSTALL_DIR="/opt/homebrew"
-          else
-              INSTALL_DIR="/usr/local"
-          fi
-          sudo mkdir -p ${INSTALL_DIR}
-          sudo mv `pwd`${INSTALL_DIR} ${INSTALL_DIR}
-          export PATH="${INSTALL_DIR}/bin:$PATH"
-          otool -L ${INSTALL_DIR}/bin/python3
-          otool -L ${INSTALL_DIR}/bin/ruby
-          ${INSTALL_DIR}/bin/python3 -c 'import sys; print(sys.argv)'
-          ${INSTALL_DIR}/bin/ruby -e "require 'date'; puts Date.today"
-
-  tgz-relocatable-test:
-    name: Run Test Distributable TGZ Relocatable
+    name: Run Test Distributable TGZ (relocatable)
     needs: build
     strategy:
       fail-fast: false
@@ -148,7 +112,9 @@ jobs:
               INSTALL_DIR="`pwd`/distributable/usr/local"
           fi
           export PATH="${INSTALL_DIR}/bin:$PATH"
+          export RUBYLIB="${INSTALL_DIR}/lib/ruby/3.3.0"
           otool -L ${INSTALL_DIR}/bin/python3
+          otool -L ${INSTALL_DIR}/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/Python || true
           otool -L ${INSTALL_DIR}/bin/ruby
           ${INSTALL_DIR}/bin/python3 -c 'import sys; print(sys.argv)'
           ${INSTALL_DIR}/bin/ruby -e "require 'date'; puts Date.today"
