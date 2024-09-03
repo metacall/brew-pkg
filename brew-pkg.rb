@@ -57,7 +57,7 @@ module Homebrew extend self
         self_referencing = true
 
         # Obtain the relative path from the library
-        relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, binary)))
+        relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.dirname(File.join(prefix_path, binary))))
       else
         # Obtain the relative path from the executable
         lib_relative_path = lib_path.delete_prefix(full_prefix_path)
