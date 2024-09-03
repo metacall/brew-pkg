@@ -46,19 +46,16 @@ module Homebrew extend self
         next
       end
 
-      # If the library is linked to itself, skip the recursive call to patchelf
-      self_referencing = false
-
       # Define new library relative path
       if lib_path == binary_path
         opoo "The link '#{File.join(root_dir, lib)}' refers to itself: '#{binary_path}'"
 
-        # Skip recursive call
-        self_referencing = true
-
         # Obtain the relative path from the library
         relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.dirname(File.join(prefix_path, binary))))
       else
+        # Recursively iterate through libraries
+        patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path), '@loader_path')
+
         # Obtain the relative path from the executable
         lib_relative_path = lib_path.delete_prefix(full_prefix_path)
         binary_relative_path = File.dirname(binary_path).delete_prefix(full_prefix_path)
@@ -76,11 +73,6 @@ module Homebrew extend self
       ohai "After patching:"
       ohai "#{stdout}"
       ohai "patchelf(#{root_dir}, #{prefix_path}, #{lib.delete_prefix(prefix_path)})"
-
-      # Recursively iterate through libraries
-      unless self_referencing
-        patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path), '@loader_path')
-      end
     end
   end
 
