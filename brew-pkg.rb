@@ -12,9 +12,6 @@ module Homebrew extend self
 
     stdout, status = Open3.capture2("file -bL --mime-encoding \"#{file_path}\"")
 
-    # TODO: Remove this...
-    ohai "Check if it '#{file_path}' is ELF: #{stdout.strip}"
-
     return stdout.strip == 'binary'
   end
 
@@ -29,6 +26,9 @@ module Homebrew extend self
 
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
+
+    # TODO: Remove
+    ohai "#{stdout}"
 
     # Remove the first line which is unnecesary
     stdout_lines = stdout.lines[1..-1]
@@ -50,8 +50,15 @@ module Homebrew extend self
         # Patch the library path relative to the binary path
         system("install_name_tool", "-change", lib, new_lib, binary_path)
 
+        # TODO: Remove
+        stdout, status = Open3.capture2("otool -L #{binary_path}")
+        ohai "#{stdout}"
+        ohai "patchelf(#{root_dir}, #{prefix_path}, #{lib.delete_prefix(prefix_path)})"
+
         # Recursively iterate through libraries
         patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path))
+      else
+        opoo "File 'File.realpath(File.join(#{root_dir}, #{lib})' not found"
       end
     end
   end
