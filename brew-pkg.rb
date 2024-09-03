@@ -41,28 +41,34 @@ module Homebrew extend self
     lib_paths.each do |lib|
       lib_path = (File.realpath(File.join(root_dir, lib)) rescue nil)
 
-      if lib_path && lib_path != binary_path
-        # Obtain the relative path from the executable
-        lib_relative_path = lib_path.delete_prefix(full_prefix_path)
-        binary_relative_path = File.dirname(binary_path).delete_prefix(full_prefix_path)
-        relative_path = Pathname.new(lib_relative_path).relative_path_from(Pathname.new(binary_relative_path))
-        new_lib = File.join(format, relative_path)
-
-        # Patch the library path relative to the binary path
-        ohai "install_name_tool -change #{lib} #{new_lib} #{binary_path}"
-        system("install_name_tool", "-change", lib, new_lib, binary_path)
-
-        # Debug information
-        stdout, status = Open3.capture2("otool -L #{binary_path}")
-        ohai "After patching:"
-        ohai "#{stdout}"
-        ohai "patchelf(#{root_dir}, #{prefix_path}, #{lib.delete_prefix(prefix_path)})"
-
-        # Recursively iterate through libraries
-        patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path), '@rpath')
-      else
+      if lib_path == nil
         opoo "File 'File.realpath(File.join(#{root_dir}, #{lib})' not found"
+        next
       end
+
+      if lib_path == binary_path
+        opoo "The link '#{File.join(root_dir, lib)}' refers to itself: '#{binary_path}'"
+        next
+      end
+
+      # Obtain the relative path from the executable
+      lib_relative_path = lib_path.delete_prefix(full_prefix_path)
+      binary_relative_path = File.dirname(binary_path).delete_prefix(full_prefix_path)
+      relative_path = Pathname.new(lib_relative_path).relative_path_from(Pathname.new(binary_relative_path))
+      new_lib = File.join(format, relative_path)
+
+      # Patch the library path relative to the binary path
+      ohai "install_name_tool -change #{lib} #{new_lib} #{binary_path}"
+      system("install_name_tool", "-change", lib, new_lib, binary_path)
+
+      # Debug information
+      stdout, status = Open3.capture2("otool -L #{binary_path}")
+      ohai "After patching:"
+      ohai "#{stdout}"
+      ohai "patchelf(#{root_dir}, #{prefix_path}, #{lib.delete_prefix(prefix_path)})"
+
+      # Recursively iterate through libraries
+      patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path), '@rpath')
     end
   end
 
@@ -210,7 +216,7 @@ the conventions of OS X installer packages.
           safe_system "mkdir", "-p", "#{staging_root}/Cellar/#{formula.name}/"
           safe_system "rsync", "-a", "#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}", "#{staging_root}/Cellar/#{formula.name}/"
           safe_system "mkdir", "-p", "#{staging_root}/opt"
-          safe_system "ln", "-s", "#{staging_root}/Cellar/#{formula.name}/#{dep_version}", "#{staging_root}/opt/#{formula.name}"
+          safe_system "ln", "-s", "../Cellar/#{formula.name}/#{dep_version}", "#{staging_root}/opt/#{formula.name}"
         end
       end
 
