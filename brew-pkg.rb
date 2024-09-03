@@ -12,6 +12,9 @@ module Homebrew extend self
 
     stdout, status = Open3.capture2("file -bL --mime-encoding \"#{file_path}\"")
 
+    # TODO: Remove this...
+    ohai "Check if it '#{file_path}' is ELF: #{stdout.strip}"
+
     return stdout.strip == 'binary'
   end
 
@@ -27,15 +30,11 @@ module Homebrew extend self
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
 
-    ohai "------------- OTOOL: #{stdout}"
-
     # Remove the first line which is unnecesary
     stdout_lines = stdout.lines[1..-1]
 
     # Get all the paths from the prefix path and strip left and remove the right data inside the parenthesis
     lib_paths = stdout_lines.grep(/#{prefix_path}/).map(&:lstrip).map { |path| path.sub(/ \(.*$/m, '') }
-
-    ohai "------------- LIBPATHS: #{lib_paths}"
 
     # Iterate through all libraries that the binary is linked to
     lib_paths.each do |lib|
@@ -48,16 +47,8 @@ module Homebrew extend self
         relative_path = Pathname.new(lib_relative_path).relative_path_from(Pathname.new(binary_relative_path))
         new_lib = File.join('@executable_path', relative_path)
 
-        ohai "lib_relative_path: #{lib_relative_path}"
-        ohai "binary_relative_path: #{binary_relative_path}"
-        ohai "relative_path: #{relative_path}"
-
         # Patch the library path relative to the binary path
         system("install_name_tool", "-change", lib, new_lib, binary_path)
-
-        # Debug (TODO: Remove this)
-        stdout, status = Open3.capture2("otool -L #{binary_path}")
-        ohai "#{stdout}"
 
         # Recursively iterate through libraries
         patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path))
