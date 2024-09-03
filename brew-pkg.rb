@@ -27,7 +27,8 @@ module Homebrew extend self
     # Get the list of linked libraries with otool
     stdout, status = Open3.capture2("otool -L #{binary_path}")
 
-    # TODO: Remove
+    # Debug information
+    ohai "Before patching:"
     ohai "#{stdout}"
 
     # Remove the first line which is unnecesary
@@ -50,8 +51,9 @@ module Homebrew extend self
         # Patch the library path relative to the binary path
         system("install_name_tool", "-change", lib, new_lib, binary_path)
 
-        # TODO: Remove
+        # Debug information
         stdout, status = Open3.capture2("otool -L #{binary_path}")
+        ohai "After patching:"
         ohai "#{stdout}"
         ohai "patchelf(#{root_dir}, #{prefix_path}, #{lib.delete_prefix(prefix_path)})"
 
@@ -206,6 +208,8 @@ the conventions of OS X installer packages.
           ohai "Staging directory #{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}"
           safe_system "mkdir", "-p", "#{staging_root}/Cellar/#{formula.name}/"
           safe_system "rsync", "-a", "#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}", "#{staging_root}/Cellar/#{formula.name}/"
+          safe_system "mkdir", "-p", "#{staging_root}/opt"
+          safe_system "ln", "-s", "#{staging_root}/Cellar/#{formula.name}/#{dep_version}", "#{staging_root}/opt/#{formula.name}"
         end
       end
 
