@@ -92,13 +92,14 @@ module Homebrew extend self
       compress: false,
       package_name: '',
       ownership: '',
-      additional_deps: []
+      additional_deps: [],
+      relocatable: false
     }
     packages = []
 
     option_parser = OptionParser.new do |opts|
       opts.banner = <<-EOS
-Usage: brew pkg [--identifier-prefix] [--with-deps] [--without-kegs] [--name] [--output-dir] [--compress] [--additional-deps] formula
+Usage: brew pkg [--identifier-prefix] [--with-deps] [--without-kegs] [--name] [--output-dir] [--compress] [--additional-deps] [--relocatable] formula
 
 Build an OS X installer package from a formula. It must be already
 installed; 'brew pkg' doesn't handle this for you automatically. The
@@ -146,6 +147,10 @@ the conventions of OS X installer packages.
 
       opts.on('-a', '--additional-deps deps_separated_by_coma', 'Provide additional dependencies in order to package all them together') do |o|
         options[:additional_deps] = o.split(',')
+      end
+
+      opts.on('-r', '--relocatable', 'Make the package relocatable so it does not depend on the path where it is located') do
+        options[:relocatable] = true
       end
     end
 
@@ -242,8 +247,10 @@ the conventions of OS X installer packages.
     end
 
     # Patchelf
-    files = Dir.entries(File.join(staging_root, 'bin')).reject { |e| e == '.' || e == '..' }
-    files.each { |file| patchelf(options[:output_dir], "#{HOMEBREW_PREFIX}/", File.join('bin', file)) }
+    if options[:relocatable]
+      files = Dir.entries(File.join(staging_root, 'bin')).reject { |e| e == '.' || e == '..' }
+      files.each { |file| patchelf(options[:output_dir], "#{HOMEBREW_PREFIX}/", File.join('bin', file)) }
+    end
 
     # Zip it
     if options[:compress]

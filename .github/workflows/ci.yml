@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, macos-14] # TODO: Add macos-12
+        os: [macos-12, macos-13, macos-14]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out the repository
@@ -88,7 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, macos-14] # TODO: Add macos-12
+        os: [macos-12, macos-13, macos-14]
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -125,8 +125,48 @@ jobs:
           ${INSTALL_DIR}/bin/python3 -c 'import sys; print(sys.argv)'
           ${INSTALL_DIR}/bin/ruby -e "require 'date'; puts Date.today"
 
-# export RUBYLIB="${INSTALL_DIR}/lib/ruby/3.3.0:${INSTALL_DIR}/lib/ruby/3.3.0/${RUBY_PLATFORM_PAIR}"
-# export GEM_PATH="${INSTALL_DIR}/lib/ruby/gems/3.3.0"
+  # TODO: Relocatable
+  # tgz-relocatable-test:
+  #   name: Run Test Distributable TGZ (relocatable)
+  #   needs: build
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [macos-12, macos-13, macos-14]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+
+  #     # Clean up previous dependencies in order to avoid conflicts with brew
+  #     - name: Uninstall brew completely
+  #       run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+
+  #     - name: Download the artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: metacall-tarball-${{ matrix.os }}
+
+  #     # Test the package in a clean environment
+  #     - name: Test
+  #       run: |
+  #         mkdir distributable
+  #         tar -xvzf ruby-with-python.tgz -C `pwd`/distributable
+  #         DARWIN_VERSION=$(sw_vers -productVersion | cut -d '.' -f 1)
+  #         if [ "$(uname -m)" = "arm64" ]; then
+  #             INSTALL_DIR="`pwd`/distributable/opt/homebrew"
+  #             RUBY_PLATFORM_PAIR="arm64-darwin${DARWIN_VERSION}"
+  #         else
+  #             INSTALL_DIR="`pwd`/distributable/usr/local"
+  #             RUBY_PLATFORM_PAIR="x86_64-darwin${DARWIN_VERSION}"
+  #         fi
+  #         export PATH="${INSTALL_DIR}/bin:$PATH"
+  #         export RUBYLIB="${INSTALL_DIR}/lib/ruby/3.3.0:${INSTALL_DIR}/lib/ruby/3.3.0/${RUBY_PLATFORM_PAIR}"
+  #         export GEM_PATH="${INSTALL_DIR}/lib/ruby/gems/3.3.0"
+  #         otool -L ${INSTALL_DIR}/bin/python3
+  #         otool -L ${INSTALL_DIR}/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/Python
+  #         otool -L ${INSTALL_DIR}/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python
+  #         otool -L ${INSTALL_DIR}/bin/ruby
+  #         ${INSTALL_DIR}/bin/python3 -c 'import sys; print(sys.argv)'
+  #         ${INSTALL_DIR}/bin/ruby -e "require 'date'; puts Date.today"
 
   pkg-test:
     name: Run Test Distributable PKG
@@ -134,7 +174,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, macos-14] # TODO: Add macos-12
+        os: [macos-12, macos-13, macos-14]
     runs-on: ${{ matrix.os }}
     steps:
 
