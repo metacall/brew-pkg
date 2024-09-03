@@ -108,14 +108,15 @@ jobs:
           tar -xvzf ruby-with-python.tgz -C `pwd`/distributable
           DARWIN_VERSION=$(sw_vers -productVersion | cut -d '.' -f 1)
           if [ "$(uname -m)" = "arm64" ]; then
-              sudo mv `pwd`/distributable/opt/* /opt/
+              sudo cp -R `pwd`/distributable/opt/homebrew/ /opt/homebrew/
               INSTALL_DIR="/opt/homebrew"
               RUBY_PLATFORM_PAIR="arm64-darwin${DARWIN_VERSION}"
           else
-              sudo mv `pwd`/distributable/usr/local/* /usr/local/
+              sudo cp -R `pwd`/distributable/usr/local/ /usr/local/
               INSTALL_DIR="/usr/local"
               RUBY_PLATFORM_PAIR="x86_64-darwin${DARWIN_VERSION}"
           fi
+          rm -rf `pwd`/distributable
           export PATH="${INSTALL_DIR}/bin:$PATH"
           export RUBYLIB="${INSTALL_DIR}/lib/ruby/3.3.0:${INSTALL_DIR}/lib/ruby/3.3.0/${RUBY_PLATFORM_PAIR}"
           export GEM_PATH="${INSTALL_DIR}/lib/ruby/gems/3.3.0"
