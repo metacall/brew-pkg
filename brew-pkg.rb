@@ -48,11 +48,11 @@ module Homebrew extend self
 
       # Define new library relative path
       if lib_path == binary_path
-        opoo "The link '#{File.join(root_dir, lib)}' refers to itself: '#{binary_path}'"
-
-        # Obtain the relative path from the library
+        # When it is referring to itself, it means that it is the id of the name path,
+        # obtain the relative path from binary folder (it is the same as the lib folder,
+        # so we can use @loader_path for covering the executable and library paths)
         relative_path = Pathname.new(lib).relative_path_from(Pathname.new(File.join(prefix_path, 'bin')))
-        new_lib = File.join('@executable_path', relative_path)
+        new_lib = File.join('@loader_path', relative_path)
 
         # Patch the library path name
         ohai "install_name_tool -id #{new_lib} #{binary_path}"
@@ -61,7 +61,7 @@ module Homebrew extend self
         # Recursively iterate through libraries
         patchelf(root_dir, prefix_path, lib.delete_prefix(prefix_path), '@loader_path')
 
-        # Obtain the relative path from the executable
+        # Obtain the relative path from the executable or library
         lib_relative_path = lib_path.delete_prefix(full_prefix_path)
         binary_relative_path = File.dirname(binary_path).delete_prefix(full_prefix_path)
         relative_path = Pathname.new(lib_relative_path).relative_path_from(Pathname.new(binary_relative_path))
