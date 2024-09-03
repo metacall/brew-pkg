@@ -209,7 +209,7 @@ the conventions of OS X installer packages.
           safe_system "mkdir", "-p", "#{staging_root}/Cellar/#{formula.name}/"
           safe_system "rsync", "-a", "#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}", "#{staging_root}/Cellar/#{formula.name}/"
           safe_system "mkdir", "-p", "#{staging_root}/opt"
-          safe_system "ln", "-s", "#{staging_root}/Cellar/#{formula.name}/#{dep_version}", "#{staging_root}/opt/#{formula.name}"
+          safe_system "ln", "-s", "../Cellar/#{formula.name}/#{dep_version}", "#{staging_root}/opt/#{formula.name}"
         end
       end
 
