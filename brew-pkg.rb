@@ -254,7 +254,7 @@ the conventions of OS X installer packages.
 
     # Zip it
     if options[:compress]
-      tgzfile = "#{options[:package_name]}.tgz"
+      tgzfile = "#{options[:package_name]}.tar.gz"
       ohai "Compressing package #{tgzfile}"
       args = [ "-czf", tgzfile, "-C", options[:output_dir], "." ]
       safe_system "tar", *args
