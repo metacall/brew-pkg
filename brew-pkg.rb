@@ -82,6 +82,40 @@ module Homebrew extend self
     end
   end
 
+  def recreate_homebrew_links(staging_root, formula_name, version)
+    cellar_formula_path = File.join(staging_root, 'Cellar', formula_name, version)
+    
+    return unless File.directory?(cellar_formula_path)
+
+    link_dirs = %w[bin lib include share etc sbin]
+    
+    link_dirs.each do |dir|
+      source_dir = File.join(cellar_formula_path, dir)
+      next unless File.directory?(source_dir)
+      
+      target_base = File.join(staging_root, dir)
+      
+      Dir.glob(File.join(source_dir, '**', '*'), File::FNM_DOTMATCH).each do |source|
+        next if ['.', '..'].include?(File.basename(source))
+        
+        relative = Pathname.new(source).relative_path_from(Pathname.new(cellar_formula_path))
+        target = File.join(staging_root, relative.to_s)
+        
+        if File.directory?(source) && !File.symlink?(source)
+          FileUtils.mkdir_p(target)
+        else
+          target_dir = File.dirname(target)
+          FileUtils.mkdir_p(target_dir)
+          
+          next if File.exist?(target) || File.symlink?(target)
+          
+          rel_link = Pathname.new(source).relative_path_from(Pathname.new(target_dir))
+          FileUtils.ln_sf(rel_link.to_s, target)
+        end
+      end
+    end
+  end
+
   def pkg
     options = {
       identifier_prefix: 'org.homebrew',
@@ -138,10 +172,10 @@ the conventions of OS X installer packages.
       ownership_options = ['recommended', 'preserve', 'preserve-other']
       opts.on('-w', '--ownership ownership_mode', 'Define the ownership as: recommended, preserve or preserve-other') do |o|
         if ownership_options.include?(o)
-          options[:ownership] = value
-          puts "Setting pkgbuild option --ownership with value #{value}"
+          options[:ownership] = o
+          puts "Setting pkgbuild option --ownership with value #{o}"
         else
-          opoo "#{value} is not a valid value for pkgbuild --ownership option, ignoring"
+          opoo "#{o} is not a valid value for pkgbuild --ownership option, ignoring"
         end
       end
 
@@ -226,12 +260,15 @@ the conventions of OS X installer packages.
 
         dirs.each { |d| safe_system "rsync", "-a", "#{d}", "#{staging_root}/" }
 
-        if File.exist?("#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}") && !options[:without_deps]
+        if File.exist?("#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}") && !options[:without_kegs]
           puts "Staging directory #{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}"
           safe_system "mkdir", "-p", "#{staging_root}/Cellar/#{formula.name}/"
           safe_system "rsync", "-a", "#{HOMEBREW_CELLAR}/#{formula.name}/#{dep_version}", "#{staging_root}/Cellar/#{formula.name}/"
           safe_system "mkdir", "-p", "#{staging_root}/opt"
           safe_system "ln", "-s", "../Cellar/#{formula.name}/#{dep_version}", "#{staging_root}/opt/#{formula.name}"
+          
+          puts "Recreating Homebrew symlinks for #{formula.name}"
+          recreate_homebrew_links(staging_root, formula.name, dep_version)
         end
       end
 
